@@ -6,11 +6,9 @@ import PriorityHeapModule
 /// for efficient greedy traversal to quickly identify locally optimal solutions that are often globally optimal as well.
 /// Additionally, its design accommodates hierarchical searches, enabling phased exploration with varying neighbor sets
 /// at each level, making it ideal for multi-layered structures.
-public struct GreedySearcher<Vertex: Identifiable, PriorityVertex: Prioritized<Vertex>> {
+public struct GreedySearcher<VertexID: Hashable, PriorityVertex: Prioritized<VertexID>> {
     /// The metric guiding the prioritization of items.
-    public let prioritize: (Vertex) -> PriorityVertex
-    /// The set of items that have been evaluated.
-    public private(set) var considered: Set<Vertex.ID>
+    public let prioritize: (VertexID) -> PriorityVertex
     /// The heap of candidates deemed optimal by the metric.
     public private(set) var optimal: PriorityHeap<PriorityVertex>
     
@@ -19,10 +17,9 @@ public struct GreedySearcher<Vertex: Identifiable, PriorityVertex: Prioritized<V
     /// - Parameters:
     ///   - initial: The initial set of items to be considered and evaluated.
     ///   - metric: The metric used to prioritize and guide the search process.
-    public init(from initial: [Vertex], prioritize: @escaping (Vertex) -> PriorityVertex) {
+    public init(from initial: [VertexID], prioritize: @escaping (VertexID) -> PriorityVertex) {
         self.prioritize = prioritize
         self.optimal = .init(initial.lazy.map(prioritize))
-        self.considered = .init(initial.lazy.map(\.id))
     }
     
     /// Updates the searcher's state by exploring neighboring items and refining the set of optimal candidates.
@@ -36,17 +33,17 @@ public struct GreedySearcher<Vertex: Identifiable, PriorityVertex: Prioritized<V
     ///   - capacity: The maximum number of candidates to maintain.
     ///
     /// - Precondition: The capacity must not be less than the current number of optimal candidates.
-    public mutating func refine<Navigator: AdjacencyNavigator<Vertex>>(using navigator: Navigator, limit capacity: Int) {
+    public mutating func refine<Navigator: AdjacencyNavigator<VertexID>>(using navigator: Navigator, limit capacity: Int) {
         precondition(optimal.count <= capacity, "Capacity limit must not be lesser than current count of optimal candidates.")
+        var considered: Set<VertexID> = .init(optimal.unordered.lazy.map(\.item))
         var frontier: PriorityHeap<PriorityVertex>
         (frontier, optimal) = (optimal, [])
         
         while let unprocessed = frontier.popMax() {
             optimal.insert(unprocessed)
             for neighbor in navigator.neighborhood(around: unprocessed.item) {
-                guard !considered.insert(neighbor.id).inserted else { continue }
+                guard considered.insert(neighbor).inserted else { continue }
                 let neighbor = prioritize(neighbor)
-                print("NEIGHBOR", neighbor.priority, "VS OPTIMAL", optimal.unordered.map(\.priority))
                 if optimal.count + frontier.count >= capacity {
                     guard neighbor.priority > PriorityHeap.max(optimal, frontier)!.priority else { continue }
                     PriorityHeap.withLesserHeap(&optimal, &frontier, ifEqual: .first) { _ = $0.removeMin() }

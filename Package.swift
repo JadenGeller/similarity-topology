@@ -13,6 +13,10 @@ let package = Package(
             name: "SmallWorld",
             targets: ["SmallWorld"]
         ),
+        .executable(
+            name: "SmallWorldVisualizer",
+            targets: ["SmallWorldVisualizer"]
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/jadengeller/CoreLMDB.git", branch: "main"),
@@ -28,6 +32,10 @@ let package = Package(
                 .product(name: "PriorityHeapAlgorithms", package: "swift-priority-heap"),
                 .product(name: "RealModule", package: "swift-numerics"),
             ]
+        ),
+        .executableTarget(
+            name: "SmallWorldVisualizer",
+            dependencies: ["SmallWorld"]
         ),
         .testTarget(
             name: "SmallWorldTests",

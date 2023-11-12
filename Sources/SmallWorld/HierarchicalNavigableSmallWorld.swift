@@ -2,10 +2,10 @@ import PriorityHeapModule
 import PriorityHeapAlgorithms
 import RealModule
 
-struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: SimilarityMetric> {
+public struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: SimilarityMetric> {
     var graph: Graph
     var metric: Metric
-    var load: (Graph.Vertex) -> Metric.Item
+    var load: (Graph.VertexID) -> Metric.Item
 
     public struct Config {
         var levelGenerationScale: Double
@@ -13,21 +13,36 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
         var maxNeighborsPerLayer: Int
         var maxNeighborsLayer0: Int
         var crowdToDensify: Bool
+        
+        public init(levelGenerationScale: Double, constructionSearchSize: Int, maxNeighborsPerLayer: Int, maxNeighborsLayer0: Int, crowdToDensify: Bool) {
+            self.levelGenerationScale = levelGenerationScale
+            self.constructionSearchSize = constructionSearchSize
+            self.maxNeighborsPerLayer = maxNeighborsPerLayer
+            self.maxNeighborsLayer0 = maxNeighborsLayer0
+            self.crowdToDensify = crowdToDensify
+        }
     }
     var config: Config
     
-    struct SearchItem: Prioritized {
-        var item: Graph.Vertex
-        var data: Metric.Item
-        var priority: Metric.Similarity
+    public init(graph: Graph, metric: Metric, load: @escaping (Graph.VertexID) -> Metric.Item, config: Config) {
+        self.graph = graph
+        self.metric = metric
+        self.load = load
+        self.config = config
     }
     
-    func prioritize(_ vertex: Graph.Vertex, query: Metric.Item) -> SearchItem {
+    public struct SearchItem: Prioritized {
+        public var item: Graph.VertexID
+        public var data: Metric.Item
+        public var priority: Metric.Similarity
+    }
+    
+    private func prioritize(_ vertex: Graph.VertexID, query: Metric.Item) -> SearchItem {
         let data = load(vertex)
         return SearchItem(item: vertex, data: data, priority: metric.similarity(between: query, data))
     }
     
-    private func searcher(for query: Metric.Item) -> GreedySearcher<Graph.Vertex, SearchItem> {
+    private func searcher(for query: Metric.Item) -> GreedySearcher<Graph.VertexID, SearchItem> {
         GreedySearcher(from: graph.entry.map { [$0] } ?? []) { vertex in
             prioritize(vertex, query: query)
         }
@@ -40,7 +55,7 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
             let limit = layer.level == 0 ? size : 1
             searcher.refine(using: layer, limit: limit)
         }
-        return searcher.optimal.ascending()
+        return searcher.optimal.descending()
     }
     
     func insertionLevel(using generator: inout some RandomNumberGenerator, scale: Double) -> Int {
@@ -48,7 +63,7 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
     }
     
     private func pickDiverseNeighbors(
-        fromUncheckedAscending candidates: some Sequence<SearchItem>,
+        fromUncheckedDescending candidates: some Sequence<SearchItem>,
         limit: Int,
         dense: Bool
     ) -> [SearchItem] {
@@ -56,7 +71,7 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
         var bridging: [SearchItem] = []
         var crowding: [SearchItem] = []
         for candidate in candidates {
-            if bridging.contains(where: { metric.similarity(between: $0.data, candidate.data) < candidate.priority }) {
+            if bridging.contains(where: { metric.similarity(between: $0.data, candidate.data) > candidate.priority }) {
                 guard bridging.count + crowding.count < limit else { continue }
                 crowding.append(candidate)
             } else {
@@ -71,13 +86,13 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
         return bridging + crowding
     }
     
-    func insert(_ newElement: Metric.Item, using generator: inout some RandomNumberGenerator) -> Graph.Vertex {
+    public func insert(_ newElement: Metric.Item, as newVertex: Graph.VertexID, using generator: inout some RandomNumberGenerator) {
         var searcher = searcher(for: newElement) // must create before inserting
-
+        
         let insertionLevel = insertionLevel(using: &generator, scale: config.levelGenerationScale)
-        let newVertex = graph.insert(on: insertionLevel)
+        graph.insert(newVertex, on: insertionLevel)
         for layer in graph.layers {
-            guard layer.level <= insertionLevel + 1 else {
+            guard layer.level <= insertionLevel else {
                 searcher.refine(using: layer, limit: 1)
                 continue
             }
@@ -85,7 +100,7 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
 
             let maxNeighbors = layer.level == 0 ? config.maxNeighborsLayer0 : config.maxNeighborsPerLayer
             let newNeighbors = pickDiverseNeighbors(
-                fromUncheckedAscending: searcher.optimal.ascending(),
+                fromUncheckedDescending: searcher.optimal.descending(),
                 limit: maxNeighbors,
                 dense: config.crowdToDensify
             )
@@ -94,14 +109,14 @@ struct HierarchicalNavigableSmallWorld<Graph: HierarchicalGraphStorage, Metric: 
             for node in newNeighbors {
                 let neighbors = Array(layer.neighborhood(around: node.item))
                 guard neighbors.count > maxNeighbors else { continue }
-                assert(neighbors.count < maxNeighbors)
                 layer.updateNeighborhood(around: node.item, with: pickDiverseNeighbors(
-                    fromUncheckedAscending: neighbors.map { prioritize($0, query: node.data) },
+                    fromUncheckedDescending: neighbors
+                        .map { prioritize($0, query: node.data) }
+                        .sorted(by: { $0.priority > $1.priority }),
                     limit: maxNeighbors,
                     dense: config.crowdToDensify
                 ).map(\.item))
             }
         }
-        return newVertex
     }
 }
