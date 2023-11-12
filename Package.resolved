@@ -1,0 +1,50 @@
+{
+  "pins" : [
+    {
+      "identity" : "clmdb",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/tannerdsilva/CLMDB.git",
+      "state" : {
+        "revision" : "39e2f317c898824777365d5669f6fa7571541893",
+        "version" : "0.9.31"
+      }
+    },
+    {
+      "identity" : "corelmdb",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jadengeller/CoreLMDB.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "cd447b7d34e0b20b1f98ee81ba103840c9aa8568"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections",
+      "state" : {
+        "branch" : "release/1.1",
+        "revision" : "4a1d92ba85027010d2c528c05576cde9a362254b"
+      }
+    },
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics",
+      "state" : {
+        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swift-priority-heap",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/JadenGeller/swift-priority-heap",
+      "state" : {
+        "branch" : "release/0.4.3",
+        "revision" : "e0b46517a040c493a98cb144d041db238e86b3fa"
+      }
+    }
+  ],
+  "version" : 2
+}
