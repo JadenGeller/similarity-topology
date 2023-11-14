@@ -1,19 +1,20 @@
 import XCTest
-@testable import SmallWorld
+import SmallWorld
+import SmallWorldExtras
 
 final class HierarchicalNavigableSmallWorldTests: XCTestCase {
     func testInsertAndNeighborhood() {
-        var graph = RandomGraph()
-        graph.insertRandomData(count: 100)
+        var index = DeterministicSampleIndex(typicalNeighborhoodSize: 20)
+        for _ in 0..<100 {
+            index.insertRandom(range: 0...1)
+        }
         
         for i in 0..<10 {
-            let sample = graph.randomData()
+            let sample = index.generateRandom(range: 0...1)
             print("iter \(i): \(sample)")
-            let hnswResults = Array(try! graph.hnsw.neighborhood(around: sample, size: 10))
-            let exactResult = graph.findExact(around: sample)
-            print("found: \(hnswResults.map(\.data))")
-            print("exact: \(exactResult.map(\.value))")
-            XCTAssert(exactResult.contains(where: { $0.key == hnswResults[0].item }))
+            let hnswResults = try! index.find(near: sample, limit: 10)
+            let exactResult = try! index.find(near: sample, limit: 1, exact: true)
+            XCTAssert(exactResult.contains(where: { $0.id == hnswResults[0].id }))
         }
     }
 }

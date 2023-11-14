@@ -1,61 +1,58 @@
 import SwiftUI
 import SmallWorld
-import GameplayKit
+import SmallWorldExtras
 
 struct GraphView: View {
-    let positions: [Int: CGPoint]
-    let edges: [Int: Set<Int>]
+    let points: [(Int, CGPoint)]
+    let edges: [(CGPoint, CGPoint)]
 
     var body: some View {
         Canvas { context, size in
-            // Draw edges
-            for (point, connectedPoints) in edges {
-                if let startPoint = positions[point] {
-                    for connectedPoint in connectedPoints {
-                        if let endPoint = positions[connectedPoint] {
-                            var path = Path()
-                            path.move(to: startPoint)
-                            path.addLine(to: endPoint)
-                            context.stroke(path, with: .color(.black), lineWidth: 1)
-                        }
-                    }
-                }
+            for (startPoint, endPoint) in edges {
+                var path = Path()
+                path.move(to: startPoint)
+                path.addLine(to: endPoint)
+                context.stroke(path, with: .color(.black), lineWidth: 1)
             }
             
-            // Draw points
-            for (id, position) in positions {
+            for (id, point) in points {
                 context.fill(
-                    Circle().path(in: CGRect(x: position.x - 5, y: position.y - 5, width: 10, height: 10)),
+                    Circle().path(in: CGRect(x: point.x - 5, y: point.y - 5, width: 10, height: 10)),
                     with: .color(.blue)
                 )
-                context.draw(Text("\(id)").bold().foregroundColor(.red), in: CGRect(x: position.x, y: position.y, width: 12, height: 12))
+                context.draw(Text("\(id)").bold().foregroundColor(.red), in: CGRect(x: point.x, y: point.y, width: 20, height: 20))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
-//struct LayerVisualizerView: View {
-//    var layer: InMemoryHierarchicalGraphStorage<Int>.Layer
-//
-//    var body: some View {
-//        Canvas { canvas in
-//            for node in layer.neighborhood {
-//                canvas.draw
-//            }
-//        }
-//    }
-//}
+extension DeterministicSampleIndex {
+    func points(for level: Int) -> [(Int, CGPoint)] {
+        base.manager.graph.keys(on: level).map { id in
+            (id, base.registrar.vector(forKey: id))
+        }
+    }
+    func edges(for level: Int) -> [(CGPoint, CGPoint)] {
+        base.manager.graph.keys(on: level).flatMap { id in
+            base.manager.graph.neighborhood(around: id, on: level).map { neighbor in
+                (base.registrar.vector(forKey: id), base.registrar.vector(forKey: neighbor))
+            }
+        }
+    }
+}
 
 struct VisualizerView: View {
-    @State var graph = RandomGraph()
+    @State var index = DeterministicSampleIndex(typicalNeighborhoodSize: 6)
     @State var angle: Angle = .zero
+    @State var updateCount = 0 // since index isn't observable!
     
     var body: some View {
         VStack {
             HStack {
                 Button("Add Data") {
-                    graph.insertRandomData(count: 1)
+                    index.insertRandom(range: 0...500)
+                    updateCount += 1
                 }
                 Slider(value: $angle.degrees, in: 0...89)
                     .frame(width: 100)
@@ -63,10 +60,12 @@ struct VisualizerView: View {
             .padding()
             ScrollView {
                 VStack {
-                    ForEach(graph.graphStorage.layers, id: \.level) { layer in
+                    ForEach(Array(index.base.manager.graph.descendingLevels), id: \.self) { level in
+                        let _ = updateCount // to force an update
+                        Text("Level \(String(level))")
                         GraphView(
-                            positions: Dictionary(uniqueKeysWithValues: layer.neighborhood.keys.map { ($0, graph.vectorStorage[$0]!) }),
-                            edges: layer.neighborhood
+                            points: index.points(for: level),
+                            edges: index.edges(for: level)
                         )
                         .rotation3DEffect(angle, axis: (1, 0, 0), perspective: 0)
                         .frame(width: 600, height: 600, alignment: .top)
@@ -93,76 +92,5 @@ struct VisualizerApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-    }
-}
-
-
-// MARK: Utils
-
-
-struct DeterministicRandomNumberGenerator: RandomNumberGenerator {
-    private let randomSource: GKMersenneTwisterRandomSource
-
-    init(seed: UInt64) {
-        randomSource = GKMersenneTwisterRandomSource(seed: seed)
-    }
-
-    mutating func next() -> UInt64 {
-        let upperBits = UInt64(UInt32(bitPattern: Int32(randomSource.nextInt()))) << 32
-        let lowerBits = UInt64(UInt32(bitPattern: Int32(randomSource.nextInt())))
-        return upperBits | lowerBits
-    }
-}
-
-
-struct RandomGraph {
-    let metric = CartesianDistanceMetric()
-    let graphStorage: InMemoryHierarchicalGraphStorage<Int> = .init()
-    var vectorStorage: [Int: CGPoint] = [:]
-    var idAllocator = (0...).makeIterator()
-
-    var hnsw: HierarchicalNavigableSmallWorld<InMemoryHierarchicalGraphStorage<Int>, CartesianDistanceMetric> {
-        .init(
-            graph: graphStorage,
-            metric: metric,
-            load: { vectorStorage[$0]! },
-            config: .init(
-                levelGenerationScale: 0.5,
-                constructionSearchSize: 1000,
-                maxNeighborsPerLayer: 4,
-                maxNeighborsLayer0: 8,
-                crowdToDensify: true
-            )
-        )
-    }
-    
-    var hnswRNG = DeterministicRandomNumberGenerator(seed: 0)
-    mutating func insertRandomData(count: Int) {
-        for _ in 0..<count {
-            let vector = randomData()
-            let id = idAllocator.next()!
-            vectorStorage[id] = vector
-            hnsw.insert(vector, as: id, using: &hnswRNG)
-        }
-    }
-    
-    var sampleRNG = DeterministicRandomNumberGenerator(seed: 1)
-    mutating func randomData() -> CGPoint {
-        CGPoint(
-            x: .random(in: (0)...(600), using: &sampleRNG),
-            y: .random(in: (0)...(600), using: &sampleRNG)
-        )
-    }
-    
-    func findExact(around query: CGPoint) -> [(key: Int, value: CGPoint)] {
-        Array(vectorStorage.sorted(by: { metric.similarity(between: query, $0.value) > metric.similarity(between: query, $1.value) }).prefix(10))
-    }
-}
-
-struct CartesianDistanceMetric: SimilarityMetric {
-    func similarity(between someItem: CGPoint, _ otherItem: CGPoint) -> Double {
-        let dx = someItem.x - otherItem.x
-        let dy = someItem.y - otherItem.y
-        return -(dx * dx + dy * dy).squareRoot() // Negative because we want a smaller distance to be a higher priority
     }
 }

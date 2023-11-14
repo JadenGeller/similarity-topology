@@ -13,6 +13,10 @@ let package = Package(
             name: "SmallWorld",
             targets: ["SmallWorld"]
         ),
+        .library(
+            name: "SmallWorldExtras",
+            targets: ["SmallWorldExtras"]
+        ),
         .executable(
             name: "SmallWorldVisualizer",
             targets: ["SmallWorldVisualizer"]
@@ -33,13 +37,17 @@ let package = Package(
                 .product(name: "RealModule", package: "swift-numerics"),
             ]
         ),
+        .target(
+            name: "SmallWorldExtras",
+            dependencies: ["SmallWorld"]
+        ),
         .executableTarget(
             name: "SmallWorldVisualizer",
-            dependencies: ["SmallWorld"]
+            dependencies: ["SmallWorld", "SmallWorldExtras"]
         ),
         .testTarget(
             name: "SmallWorldTests",
-            dependencies: ["SmallWorld"]
+            dependencies: ["SmallWorld", "SmallWorldExtras"]
         ),
     ]
 )
