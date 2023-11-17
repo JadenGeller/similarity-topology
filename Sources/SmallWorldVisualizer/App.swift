@@ -29,13 +29,13 @@ struct GraphView: View {
 
 extension DeterministicSampleIndex {
     func points(for level: Int) -> [(Int, CGPoint)] {
-        base.manager.graph.keys(on: level).map { id in
+        base.graph.keys(on: level).map { id in
             (id, base.registrar.vector(forKey: id))
         }
     }
     func edges(for level: Int) -> [(CGPoint, CGPoint)] {
-        base.manager.graph.keys(on: level).flatMap { id in
-            base.manager.graph.neighborhood(around: id, on: level).map { neighbor in
+        base.graph.keys(on: level).flatMap { id in
+            base.graph.neighborhood(around: id, on: level).map { neighbor in
                 (base.registrar.vector(forKey: id), base.registrar.vector(forKey: neighbor))
             }
         }
@@ -60,7 +60,7 @@ struct VisualizerView: View {
             .padding()
             ScrollView {
                 VStack {
-                    ForEach(Array(index.base.manager.graph.descendingLevels), id: \.self) { level in
+                    ForEach(Array(index.base.graph.descendingLevels), id: \.self) { level in
                         let _ = updateCount // to force an update
                         Text("Level \(String(level))")
                         GraphView(

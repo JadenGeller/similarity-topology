@@ -17,7 +17,7 @@ public struct DeterministicSampleIndex {
     public func find(near query: CGPoint, limit: Int, exact: Bool = false) throws -> [Index.Neighbor] {
         if exact {
             Array(PriorityHeap(base.registrar.vectors.enumerated().map {
-                let similarity = base.manager.metric.similarity(between: query, $0.element)
+                let similarity = base.metric.similarity(between: query, $0.element)
                 return NearbyVector(id: $0.offset, vector: $0.element, priority: similarity)
             }).descending().prefix(limit))
         } else {

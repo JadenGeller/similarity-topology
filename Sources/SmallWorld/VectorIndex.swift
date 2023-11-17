@@ -9,13 +9,19 @@ public protocol VectorIndex {
     typealias Manager = GraphManager<Graph, Metric>
     
     var registrar: Registrar { get }
-    var manager: Manager { get } // TODO: Should this be a computed property?
+    var graph: Graph { get }
+    var metric: Metric { get }
+    var params: AlgorithmParameters { get }
+}
+
+extension VectorIndex {
+    internal var manager: Manager {
+        .init(graph: graph, metric: metric, vector: registrar.vector, params: params)
+    }
 }
 
 extension VectorIndex {
     public typealias Neighbor = NearbyVector<Graph.Key, Metric.Vector, Metric.Similarity, Registrar.Metadata>
-
-    // FIXME: I don't love this type or the duplication
     
     public func find(near query: Registrar.Vector, limit: Int) throws -> some Sequence<Neighbor> {
         try manager.find(near: query, limit: limit).map {
@@ -29,11 +35,13 @@ extension VectorIndex {
 }
 
 public struct InMemoryVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metric: SimilarityMetric, Metadata>: VectorIndex {
-    public var registrar: InMemoryVectorRegistrar<Key, Metric.Vector, Metadata>
-    public var manager: GraphManager<InMemoryGraphStorage<Key, Level>, Metric>
-    
+    public var registrar = InMemoryVectorRegistrar<Key, Metric.Vector, Metadata>()
+    public var graph = InMemoryGraphStorage<Key, Level>()
+    public var metric: Metric
+    public var params: AlgorithmParameters
+
     public init(metric: Metric, params: AlgorithmParameters) {
-        self.registrar = InMemoryVectorRegistrar()
-        self.manager = GraphManager(graph: InMemoryGraphStorage(), metric: metric, vector: registrar.vector, params: params)
+        self.metric = metric
+        self.params = params
     }
 }
