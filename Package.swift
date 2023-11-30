@@ -27,16 +27,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/jadengeller/CoreLMDB.git", branch: "main"),
+        .package(url: "https://github.com/jadengeller/core-lmdb.git", branch: "main"),
         .package(url: "https://github.com/JadenGeller/swift-priority-heap", branch: "release/0.4.3"),
         .package(url: "https://github.com/apple/swift-numerics", from: "1.0.0"),
-        .package(url: "https://github.com/SomeRandomiOSDev/CBORCoding.git", from: "1.4.0")
     ],
     targets: [
         .target(
             name: "SmallWorld",
             dependencies: [
-                "CoreLMDB",
+                .product(name: "CoreLMDB", package: "core-lmdb"),
                 .product(name: "PriorityHeapModule", package: "swift-priority-heap"),
                 .product(name: "PriorityHeapAlgorithms", package: "swift-priority-heap"),
                 .product(name: "RealModule", package: "swift-numerics"),
@@ -44,7 +43,11 @@ let package = Package(
         ),
         .target(
             name: "SmallWorldDatabase",
-            dependencies: ["SmallWorld", "CoreLMDB", "CBORCoding"]
+            dependencies: [
+                "SmallWorld",
+                .product(name: "CoreLMDB", package: "core-lmdb"),
+                .product(name: "CoreLMDBCoders", package: "core-lmdb")
+            ]
         ),
         .target(
             name: "SmallWorldExtras",

@@ -2,18 +2,20 @@ public protocol GraphStorage {
     associatedtype Key: Hashable
     associatedtype Level: BinaryInteger
     
-    var entry: Key? { get }
-    var maxLevel: Level { get }
-    func addLevel(with newEntry: Key)
+    var entry: (key: Key, level: Level)? { get }
+    func register(_ key: Key, on insertionLevel: Level)
     
     func neighborhood(around key: Key, on level: Level) -> [Key]
-    func connect(_ key: Key, to other: Key, on level: Level)
-    func disconnect(_ key: Key, from other: Key, on level: Level)
+    func replaceNeighborhood(around key: Key, on level: Level, with newNeighbors: [Key])
 }
 
 extension GraphStorage {
-    public var descendingLevels: some Sequence<Level> {
-        stride(from: maxLevel, through: 0, by: -1)
+    @inlinable @inline(__always)
+    public func descendingLevels(from first: Level? = nil, through last: Level = 0) -> some Sequence<Level> {
+        guard let entry else { return stride(from: 1, through: 0, by: -1) /* empty */ }
+        guard let first else { return stride(from: entry.level, through: last, by: -1) }
+        assert(first <= entry.level)
+        return stride(from: first, through: last, by: -1)
     }
 }
 
@@ -25,11 +27,11 @@ public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphSto
     
     public init() { }
     
-    public private(set) var entry: Key?
-    public private(set) var maxLevel: Level = -1
-    public func addLevel(with newEntry: Key) {
-        entry = newEntry
-        maxLevel += 1
+    public private(set) var entry: (key: Key, level: Level)?
+    public func register(_ key: Key, on insertionLevel: Level) {
+        guard let entry else { return entry = (key, insertionLevel) }
+        guard insertionLevel > entry.level else { return }
+        self.entry = (key, insertionLevel)
     }
     
     private var connections: [Level: [Key: Set<Key>]] = [:]
@@ -40,19 +42,16 @@ public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphSto
     public func neighborhood(around key: Key, on level: Level) -> [Key] {
         Array(self[level, key])
     }
-    public func connect(_ key: Key, to other: Key, on level: Level) {
-        self[level, key].insert(other)
-    }
-    public func disconnect(_ key: Key, from other: Key, on level: Level) {
-        self[level, key].remove(other)
+    public func replaceNeighborhood(around key: Key, on level: Level, with newNeighbors: [Key]) {
+        self[level, key] = Set(newNeighbors)
     }
 }
 
 extension InMemoryGraphStorage {
     public func keys(on level: Level) -> some Sequence<Key> {
         var result = Set(connections[level, default: [:]].keys)
-        if level == maxLevel, let entry {
-            result.insert(entry)
+        if let entry, entry.level == level {
+            result.insert(entry.key)
         }
         return result
     }

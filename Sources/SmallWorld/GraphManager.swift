@@ -25,7 +25,7 @@ extension GraphManager {
     }
     
     private func searcher(for query: Metric.Vector) -> GreedySearcher<Graph.Key, Candidate> {
-        .init(initial: graph.entry.map { [$0] } ?? []) { vertex in
+        .init(initial: graph.entry.map { [$0.key] } ?? []) { vertex in
             prioritize(vertex, relativeTo: query)
         }
     }
@@ -34,7 +34,7 @@ extension GraphManager {
 extension GraphManager {
     public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<Candidate> {
         var searcher = searcher(for: query)
-        for level in stride(from: graph.maxLevel, to: 0, by: -1) {
+        for level in graph.descendingLevels() {
             searcher.refine(capacity: 1) { graph.neighborhood(around: $0, on: level) }
         }
         searcher.refine(capacity: limit) { graph.neighborhood(around: $0, on: 0) }
@@ -72,27 +72,14 @@ extension GraphManager {
         }
     }
     
-    private func updateImmediateNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from oldNeighbors: [Graph.Key], to newNeighbors: [Graph.Key]) {
-        for difference in newNeighbors.difference(from: oldNeighbors) {
-            switch difference {
-            case .insert(_, let neighborID, _):
-                graph.connect(id, to: neighborID, on: level)
-                graph.connect(neighborID, to: id, on: level)
-            case .remove(_, let neighborID, _):
-                graph.disconnect(id, from: neighborID, on: level)
-                graph.disconnect(neighborID, from: id, on: level)
-            }
-        }
-    }
-    
     private func updateExtendedNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) {
         let immediateNeighborhood = diverseNeighborhood(from: candidates, maxNeighborhoodSize: params.maxNeighborhoodSizeCreate)
-        updateImmediateNeighborhood(forKey: id, on: level, from: [], to: immediateNeighborhood.map(\.id))
+        graph.replaceNeighborhood(around: id, on: level, with: immediateNeighborhood.map(\.id))
         
         for immediateNeighbor in immediateNeighborhood {
             let extendedNeighborhood = graph.neighborhood(around: immediateNeighbor.id, on: level)
             guard extendedNeighborhood.count > maxNeighborhoodSize else { continue }
-            updateImmediateNeighborhood(forKey: immediateNeighbor.id, on: level, from: extendedNeighborhood, to: diverseNeighborhood(
+            graph.replaceNeighborhood(around: immediateNeighbor.id, on: level, with: diverseNeighborhood(
                 from: PriorityHeap(extendedNeighborhood.map { prioritize($0, relativeTo: immediateNeighbor.vector) }).descending(),
                 maxNeighborhoodSize: maxNeighborhoodSize
             ).map(\.id))
@@ -103,18 +90,16 @@ extension GraphManager {
         let insertionLevel = randomInsertionLevel(using: &generator)
         
         var searcher = searcher(for: vector)
-        for level in stride(from: graph.maxLevel, to: insertionLevel, by: -1) {
+        for level in graph.descendingLevels(through: insertionLevel + 1) {
             searcher.refine(capacity: 1) { graph.neighborhood(around: $0, on: level) }
         }
-        for level in stride(from: min(graph.maxLevel, insertionLevel), through: 0, by: -1) {
+        for level in graph.descendingLevels(from: insertionLevel, through: 1) {
             searcher.refine(capacity: params.constructionSearchCapacity) { graph.neighborhood(around: $0, on: level) }
             updateExtendedNeighborhood(forKey: id, on: level, from: searcher.optimal.descending(), maxNeighborhoodSize: params.maxNeighborhoodSizeLevelN)
         }
         searcher.refine(capacity: params.constructionSearchCapacity) { graph.neighborhood(around: $0, on: 0) }
         updateExtendedNeighborhood(forKey: id, on: 0, from: searcher.optimal.descending(), maxNeighborhoodSize: params.maxNeighborhoodSizeLevel0)
         
-        if insertionLevel > graph.maxLevel {
-            graph.addLevel(with: id)
-        }
+        graph.register(id, on: insertionLevel)
     }
 }

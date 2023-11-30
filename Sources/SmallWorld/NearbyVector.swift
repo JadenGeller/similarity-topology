@@ -19,7 +19,7 @@ extension NearbyVector where Metadata == Void {
         self.init(id: id, vector: vector, priority: priority, metadata: ())
     }
     
-    func withMetadata<NewMetadata>(_ metadata: NewMetadata) -> NearbyVector<ID, Vector, Priority, NewMetadata> {
+    public func withMetadata<NewMetadata>(_ metadata: NewMetadata) -> NearbyVector<ID, Vector, Priority, NewMetadata> {
         .init(id: id, vector: vector, priority: priority, metadata: metadata)
     }
 }

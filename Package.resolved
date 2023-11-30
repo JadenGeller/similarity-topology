@@ -1,15 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "cborcoding",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SomeRandomiOSDev/CBORCoding.git",
-      "state" : {
-        "revision" : "6fbd643c64cf6ef7a98391820c372d05fa9ed9ab",
-        "version" : "1.4.0"
-      }
-    },
-    {
       "identity" : "clmdb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/tannerdsilva/CLMDB.git",
@@ -19,21 +10,12 @@
       }
     },
     {
-      "identity" : "corelmdb",
+      "identity" : "core-lmdb",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/jadengeller/CoreLMDB.git",
+      "location" : "https://github.com/jadengeller/core-lmdb.git",
       "state" : {
         "branch" : "main",
-        "revision" : "cd447b7d34e0b20b1f98ee81ba103840c9aa8568"
-      }
-    },
-    {
-      "identity" : "half",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/SomeRandomiOSDev/Half",
-      "state" : {
-        "revision" : "bb32fc7a5d5cfcee01e5442b1381450b1fcd4803",
-        "version" : "1.4.1"
+        "revision" : "1e7810ca1b993e76debf38425d82b9f1c4eb4045"
       }
     },
     {
@@ -42,7 +24,7 @@
       "location" : "https://github.com/apple/swift-collections",
       "state" : {
         "branch" : "release/1.1",
-        "revision" : "4a1d92ba85027010d2c528c05576cde9a362254b"
+        "revision" : "5fab05b1ea1d65f3057dd8caa3d819eb18984022"
       }
     },
     {
