@@ -15,10 +15,10 @@ public struct DurableGraphStorage: GraphStorage {
     typealias LevelKeyCoder = TupleByteCoder<LevelCoder, KeyCoder>
     static var levelKeyCoder: LevelKeyCoder { .init(levelCoder, keyCoder) }
     
-    static var neighborhoodSchema: DatabaseSchema<LevelKeyCoder, UnsafeMemoryLayoutArrayByteCoder<Key>> {
+    static var neighborhoodSchema: DatabaseSchema<LevelKeyCoder, KeyCoder> {
         .init(
             keyCoder: levelKeyCoder,
-            valueCoder: UnsafeMemoryLayoutArrayByteCoder<Key>()
+            valueCoder: keyCoder
         )
     }
     
@@ -31,7 +31,7 @@ public struct DurableGraphStorage: GraphStorage {
     }
     private static let entryKey: Level = .max
 
-    private var cursor: RawCursor
+    private var cursor: RawCursor // DUPSORT!
     init(cursor: RawCursor) {
         self.cursor = cursor
     }
@@ -45,12 +45,22 @@ public struct DurableGraphStorage: GraphStorage {
         try! cursor.bind(to: Self.entrySchema).put((insertionLevel, key), atKey: Self.entryKey)
     }
     
-    public func neighborhood(around key: Key, on level: Level) -> [Key] {
-        guard let item = try! cursor.bind(to: Self.neighborhoodSchema).get(atKey: (level, key))?.value else { return [] }
-        return Array(item)
+    public func connect(_ lhs: UInt32, to rhs: UInt32, on level: UInt8) {
+        try! cursor.bind(to: Self.neighborhoodSchema).put(rhs, atKey: (level, lhs))
     }
     
-    public func replaceNeighborhood(around key: UInt32, on level: UInt8, with newNeighbors: [UInt32]) {
-        try! cursor.bind(to: Self.neighborhoodSchema).put(newNeighbors, atKey: (level, key), overwrite: true)
+    public func disconnect(_ lhs: UInt32, from rhs: UInt32, on level: UInt8) {
+        try! cursor.bind(to: Self.neighborhoodSchema).get(atKey: (level, lhs), value: rhs)
+        try! cursor.bind(to: Self.neighborhoodSchema).delete(target: .value)
+    }
+    
+    public func neighborhood(around key: Key, on level: Level) -> [Key] {
+        var result: [Key] = []
+        guard let first = try! cursor.bind(to: Self.neighborhoodSchema).get(atKey: (level, key)) else { return result }
+        result.append(first.value)
+        while let next = try! cursor.bind(to: Self.neighborhoodSchema).get(.next, target: .value) {
+            result.append(next.value)
+        }
+        return result
     }
 }
