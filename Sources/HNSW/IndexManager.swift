@@ -2,7 +2,7 @@ import PriorityHeapModule
 import PriorityHeapAlgorithms
 import RealModule
 
-public struct GraphManager<Graph: GraphStorage, Metric: SimilarityMetric> {
+public struct IndexManager<Graph: GraphStore, Metric: SimilarityMetric> {
     public var graph: Graph
     public var metric: Metric
     public var vector: (Graph.Key) -> Metric.Vector
@@ -16,7 +16,7 @@ public struct GraphManager<Graph: GraphStorage, Metric: SimilarityMetric> {
     }
 }
 
-extension GraphManager {
+extension IndexManager {
     public typealias Candidate = NearbyVector<Graph.Key, Metric.Vector, Metric.Similarity>
     
     private func prioritize(_ id: Graph.Key, relativeTo reference: Metric.Vector) -> Candidate {
@@ -31,7 +31,7 @@ extension GraphManager {
     }
 }
 
-extension GraphManager {
+extension IndexManager {
     public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<Candidate> {
         var searcher = searcher(for: query)
         for level in sequence(state: graph.entry?.level, next: graph.descend) {
@@ -42,7 +42,7 @@ extension GraphManager {
     }
 }
 
-extension GraphManager {
+extension IndexManager {
     private func randomInsertionLevel(using generator: inout some RandomNumberGenerator) -> Graph.Level {
         .init(-.log(.random(in: 0..<1, using: &generator)) * params.insertionLevelGenerationLogScale)
     }

@@ -3,63 +3,49 @@
 import PackageDescription
 
 let package = Package(
-    name: "SmallWorld",
+    name: "swift-hnsw",
     platforms: [
         .iOS(.v13),
         .macOS(.v12)
     ],
     products: [
         .library(
-            name: "SmallWorld",
-            targets: ["SmallWorld"]
+            name: "HNSW",
+            targets: ["HNSW"]
         ),
         .library(
-            name: "SmallWorldDatabase",
-            targets: ["SmallWorldDatabase"]
-        ),
-        .library(
-            name: "SmallWorldExtras",
-            targets: ["SmallWorldExtras"]
+            name: "HNSWExtras",
+            targets: ["HNSWExtras"]
         ),
         .executable(
-            name: "SmallWorldVisualizer",
-            targets: ["SmallWorldVisualizer"]
+            name: "HNSWVisualizer",
+            targets: ["HNSWVisualizer"]
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/jadengeller/core-lmdb.git", branch: "main"),
         .package(url: "https://github.com/JadenGeller/swift-priority-heap", branch: "release/0.4.3"),
         .package(url: "https://github.com/apple/swift-numerics", from: "1.0.0"),
     ],
     targets: [
         .target(
-            name: "SmallWorld",
+            name: "HNSW",
             dependencies: [
-                .product(name: "CoreLMDB", package: "core-lmdb"),
                 .product(name: "PriorityHeapModule", package: "swift-priority-heap"),
                 .product(name: "PriorityHeapAlgorithms", package: "swift-priority-heap"),
                 .product(name: "RealModule", package: "swift-numerics"),
             ]
         ),
         .target(
-            name: "SmallWorldDatabase",
-            dependencies: [
-                "SmallWorld",
-                .product(name: "CoreLMDB", package: "core-lmdb"),
-                .product(name: "CoreLMDBCoders", package: "core-lmdb")
-            ]
-        ),
-        .target(
-            name: "SmallWorldExtras",
-            dependencies: ["SmallWorld"]
+            name: "HNSWExtras",
+            dependencies: ["HNSW"]
         ),
         .executableTarget(
-            name: "SmallWorldVisualizer",
-            dependencies: ["SmallWorld", "SmallWorldExtras"]
+            name: "HNSWVisualizer",
+            dependencies: ["HNSW", "HNSWExtras"]
         ),
         .testTarget(
-            name: "SmallWorldTests",
-            dependencies: ["SmallWorld", "SmallWorldExtras"]
+            name: "HNSWTests",
+            dependencies: ["HNSW", "HNSWExtras"]
         ),
     ]
 )

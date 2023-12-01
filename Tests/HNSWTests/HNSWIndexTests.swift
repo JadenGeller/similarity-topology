@@ -1,8 +1,8 @@
 import XCTest
-import SmallWorld
-import SmallWorldExtras
+import HNSW
+import HNSWExtras
 
-final class HierarchicalNavigableSmallWorldTests: XCTestCase {
+final class HNSWIndexTests: XCTestCase {
     func testInsertAndNeighborhood() {
         var index = DeterministicSampleVectorIndex(typicalNeighborhoodSize: 20)
         for _ in 0..<100 {

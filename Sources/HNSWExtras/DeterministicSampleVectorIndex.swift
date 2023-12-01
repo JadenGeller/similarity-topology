@@ -1,4 +1,4 @@
-import SmallWorld
+import HNSW
 import Foundation
 import PriorityHeapModule
 import PriorityHeapAlgorithms

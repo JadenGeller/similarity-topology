@@ -1,4 +1,4 @@
-import SmallWorld
+import HNSW
 import PriorityHeapModule
 
 public struct InMemoryVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metric: SimilarityMetric, Metadata> {
@@ -16,7 +16,7 @@ public struct InMemoryVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metr
         self.params = params
     }
     
-    internal var manager: GraphManager<Graph, Metric> {
+    internal var manager: IndexManager<Graph, Metric> {
         .init(graph: graph, metric: metric, vector: { vectors[Int($0)] }, params: params)
     }
 

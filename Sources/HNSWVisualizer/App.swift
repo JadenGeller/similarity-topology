@@ -1,6 +1,6 @@
 import SwiftUI
-import SmallWorld
-import SmallWorldExtras
+import HNSW
+import HNSWExtras
 
 struct GraphView: View {
     let points: [(Int, CGPoint)]

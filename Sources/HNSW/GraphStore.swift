@@ -1,4 +1,4 @@
-public protocol GraphStorage {
+public protocol GraphStore {
     associatedtype Key: Hashable
     associatedtype Level: BinaryInteger
     
@@ -10,7 +10,7 @@ public protocol GraphStorage {
     func neighborhood(around key: Key, on level: Level) -> [Key]
 }
 
-extension GraphStorage {
+extension GraphStore {
     @discardableResult @inlinable @inline(__always)
     public func descend(_ level: inout Level?) -> Level? {
         defer {
@@ -24,7 +24,7 @@ extension GraphStorage {
     }
 }
 
-public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphStorage {
+public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphStore {
     private struct NeighborhoodID: Hashable {
         var key: Key
         var level: Level

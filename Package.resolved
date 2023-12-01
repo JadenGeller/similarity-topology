@@ -1,24 +1,6 @@
 {
   "pins" : [
     {
-      "identity" : "clmdb",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/tannerdsilva/CLMDB.git",
-      "state" : {
-        "revision" : "39e2f317c898824777365d5669f6fa7571541893",
-        "version" : "0.9.31"
-      }
-    },
-    {
-      "identity" : "core-lmdb",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/jadengeller/core-lmdb.git",
-      "state" : {
-        "branch" : "main",
-        "revision" : "16776cccc1db15243e78b9b363af34e0c85ced9b"
-      }
-    },
-    {
       "identity" : "swift-collections",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-collections",
