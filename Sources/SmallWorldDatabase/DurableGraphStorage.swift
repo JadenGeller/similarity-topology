@@ -42,6 +42,8 @@ public struct DurableGraphStorage: GraphStorage {
     }
 
     public func register(_ key: Key, on insertionLevel: Level) {
+        try! cursor.bind(to: Self.entrySchema).get(atKey: Self.entryKey)
+        try! cursor.delete(target: .key)
         try! cursor.bind(to: Self.entrySchema).put((insertionLevel, key), atKey: Self.entryKey)
     }
     
