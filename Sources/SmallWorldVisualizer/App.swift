@@ -27,23 +27,23 @@ struct GraphView: View {
     }
 }
 
-extension DeterministicSampleIndex {
+extension DeterministicSampleVectorIndex {
     func points(for level: Int) -> [(Int, CGPoint)] {
         base.graph.keys(on: level).map { id in
-            (id, base.registrar.vector(forKey: id))
+            (id, base.vectors[id])
         }
     }
     func edges(for level: Int) -> [(CGPoint, CGPoint)] {
         base.graph.keys(on: level).flatMap { id in
             base.graph.neighborhood(around: id, on: level).map { neighbor in
-                (base.registrar.vector(forKey: id), base.registrar.vector(forKey: neighbor))
+                return (base.vectors[id], base.vectors[neighbor])
             }
         }
     }
 }
 
 struct VisualizerView: View {
-    @State var index = DeterministicSampleIndex(typicalNeighborhoodSize: 6)
+    @State var index = DeterministicSampleVectorIndex(typicalNeighborhoodSize: 6)
     @State var angle: Angle = .zero
     @State var updateCount = 0 // since index isn't observable!
     
@@ -60,7 +60,8 @@ struct VisualizerView: View {
             .padding()
             ScrollView {
                 VStack {
-                    ForEach(Array(index.base.graph.descendingLevels), id: \.self) { level in
+                    let graph = index.base.graph
+                    ForEach(Array(sequence(state: graph.entry?.level, next: graph.descend)), id: \.self) { level in
                         let _ = updateCount // to force an update
                         Text("Level \(String(level))")
                         GraphView(

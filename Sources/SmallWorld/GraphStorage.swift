@@ -5,17 +5,22 @@ public protocol GraphStorage {
     var entry: (key: Key, level: Level)? { get }
     func register(_ key: Key, on insertionLevel: Level)
     
+    func connect(_ lhs: Key, to rhs: Key, on level: Level)
+    func disconnect(_ lhs: Key, from rhs: Key, on level: Level)
     func neighborhood(around key: Key, on level: Level) -> [Key]
-    func replaceNeighborhood(around key: Key, on level: Level, with newNeighbors: [Key])
 }
 
 extension GraphStorage {
-    @inlinable @inline(__always)
-    public func descendingLevels(from first: Level? = nil, through last: Level = 0) -> some Sequence<Level> {
-        guard let entry else { return stride(from: 1, through: 0, by: -1) /* empty */ }
-        guard let first else { return stride(from: entry.level, through: last, by: -1) }
-        assert(first <= entry.level)
-        return stride(from: first, through: last, by: -1)
+    @discardableResult @inlinable @inline(__always)
+    public func descend(_ level: inout Level?) -> Level? {
+        defer {
+            switch level {
+            case nil: break
+            case 0: level = nil
+            case let currentLevel?: level = currentLevel - 1
+            }
+        }
+        return level
     }
 }
 
@@ -42,8 +47,12 @@ public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphSto
     public func neighborhood(around key: Key, on level: Level) -> [Key] {
         Array(self[level, key])
     }
-    public func replaceNeighborhood(around key: Key, on level: Level, with newNeighbors: [Key]) {
-        self[level, key] = Set(newNeighbors)
+    
+    public func connect(_ lhs: Key, to rhs: Key, on level: Level) {
+        self[level, lhs].insert(rhs)
+    }
+    public func disconnect(_ lhs: Key, from rhs: Key, on level: Level) {
+        self[level, lhs].remove(rhs)
     }
 }
 

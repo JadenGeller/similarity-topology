@@ -4,7 +4,7 @@ import SmallWorldExtras
 
 final class HierarchicalNavigableSmallWorldTests: XCTestCase {
     func testInsertAndNeighborhood() {
-        var index = DeterministicSampleIndex(typicalNeighborhoodSize: 20)
+        var index = DeterministicSampleVectorIndex(typicalNeighborhoodSize: 20)
         for _ in 0..<100 {
             index.insertRandom(range: 0...1)
         }
