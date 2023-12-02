@@ -2,8 +2,7 @@ public protocol GraphStore {
     associatedtype Key: Hashable
     associatedtype Level: BinaryInteger
     
-    var entry: (key: Key, level: Level)? { get }
-    func register(_ key: Key, on insertionLevel: Level)
+    var entry: (key: Key, level: Level)? { get nonmutating set }
     
     func connect(_ lhs: Key, to rhs: Key, on level: Level)
     func disconnect(_ lhs: Key, from rhs: Key, on level: Level)
@@ -32,13 +31,7 @@ public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphSto
     
     public init() { }
     
-    public private(set) var entry: (key: Key, level: Level)?
-    public func register(_ key: Key, on insertionLevel: Level) {
-        guard let entry else { return entry = (key, insertionLevel) }
-        guard insertionLevel > entry.level else { return }
-        self.entry = (key, insertionLevel)
-    }
-    
+    public var entry: (key: Key, level: Level)?
     private var connections: [Level: [Key: Set<Key>]] = [:]
     subscript(level: Level, key: Key) -> Set<Key> {
         get { connections[level, default: [:]][key, default: []] }

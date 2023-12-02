@@ -115,7 +115,8 @@ extension IndexManager {
             updateExtendedNeighborhood(forKey: id, on: level, from: searcher.optimal.descending(), maxNeighborhoodSize: maxNeighborhoodSize)
         }
         
-        graph.register(id, on: insertionLevel)
-        print(insertionLevel)
+        if graph.entry.map({ $0.level < insertionLevel }) ?? true {
+            graph.entry = (id, insertionLevel)
+        }
     }
 }
