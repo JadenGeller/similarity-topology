@@ -2,11 +2,11 @@ public protocol GraphStore {
     associatedtype Key: Hashable
     associatedtype Level: BinaryInteger
     
-    var entry: (key: Key, level: Level)? { get nonmutating set }
+    var entry: (level: Level, key: Key)? { get nonmutating set }
     
-    func connect(_ lhs: Key, to rhs: Key, on level: Level)
-    func disconnect(_ lhs: Key, from rhs: Key, on level: Level)
-    func neighborhood(around key: Key, on level: Level) -> [Key]
+    func connect(on level: Level, _ keys: (Key, Key)) // bidirectional!
+    func disconnect(on level: Level, _ keys: (Key, Key)) // bidirectional!
+    func neighborhood(on level: Level, around key: Key) -> [Key]
 }
 
 extension GraphStore {
@@ -31,21 +31,23 @@ public class InMemoryGraphStorage<Key: Hashable, Level: BinaryInteger>: GraphSto
     
     public init() { }
     
-    public var entry: (key: Key, level: Level)?
+    public var entry: (level: Level, key: Key)?
     private var connections: [Level: [Key: Set<Key>]] = [:]
     subscript(level: Level, key: Key) -> Set<Key> {
         get { connections[level, default: [:]][key, default: []] }
         set { connections[level, default: [:]][key, default: []] = newValue }
     }
-    public func neighborhood(around key: Key, on level: Level) -> [Key] {
+    public func neighborhood(on level: Level, around key: Key) -> [Key] {
         Array(self[level, key])
     }
     
-    public func connect(_ lhs: Key, to rhs: Key, on level: Level) {
-        self[level, lhs].insert(rhs)
+    public func connect(on level: Level, _ keys: (Key, Key)) {
+        self[level, keys.0].insert(keys.1)
+        self[level, keys.1].insert(keys.0)
     }
-    public func disconnect(_ lhs: Key, from rhs: Key, on level: Level) {
-        self[level, lhs].remove(rhs)
+    public func disconnect(on level: Level, _ keys: (Key, Key)) {
+        self[level, keys.0].remove(keys.1)
+        self[level, keys.1].remove(keys.0)
     }
 }
 

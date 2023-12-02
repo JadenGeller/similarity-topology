@@ -36,7 +36,7 @@ extension IndexManager {
         var searcher = searcher(for: query)
         for level in sequence(state: graph.entry?.level, next: graph.descend) {
             let capacity = if level > 0 { 1 } else { limit }
-            searcher.refine(capacity: capacity) { graph.neighborhood(around: $0, on: level) }
+            searcher.refine(capacity: capacity) { graph.neighborhood(on: level, around: $0) }
         }
         return searcher.optimal.descending()
     }
@@ -76,11 +76,9 @@ extension IndexManager {
         for difference in newNeighbors.difference(from: oldNeighbors) {
             switch difference {
             case .insert(_, let neighborID, _):
-                graph.connect(id, to: neighborID, on: level)
-                graph.connect(neighborID, to: id, on: level)
+                graph.connect(on: level, (id, neighborID))
             case .remove(_, let neighborID, _):
-                graph.disconnect(id, from: neighborID, on: level)
-                graph.disconnect(neighborID, from: id, on: level)
+                graph.disconnect(on: level, (id, neighborID))
             }
         }
     }
@@ -90,7 +88,7 @@ extension IndexManager {
         updateImmediateNeighborhood(forKey: id, on: level, from: [], to: immediateNeighborhood.map(\.id))
         
         for immediateNeighbor in immediateNeighborhood {
-            let extendedNeighborhood = graph.neighborhood(around: immediateNeighbor.id, on: level)
+            let extendedNeighborhood = graph.neighborhood(on: level, around: immediateNeighbor.id)
             guard extendedNeighborhood.count > maxNeighborhoodSize else { continue }
             updateImmediateNeighborhood(forKey: immediateNeighbor.id, on: level, from: extendedNeighborhood, to: diverseNeighborhood(
                 from: PriorityHeap(extendedNeighborhood.map { prioritize($0, relativeTo: immediateNeighbor.vector) }).descending(),
@@ -106,17 +104,17 @@ extension IndexManager {
         var descentLevel = graph.entry?.level
         while let level = descentLevel, level > insertionLevel {
             defer { graph.descend(&descentLevel) }
-            searcher.refine(capacity: 1) { graph.neighborhood(around: $0, on: level) }
+            searcher.refine(capacity: 1) { graph.neighborhood(on: level, around: $0) }
         }
         while let level = descentLevel {
             defer { graph.descend(&descentLevel) }
             let maxNeighborhoodSize = if level > 0 { params.maxNeighborhoodSizeLevelN } else { params.maxNeighborhoodSizeLevel0 }
-            searcher.refine(capacity: params.constructionSearchCapacity) { graph.neighborhood(around: $0, on: level) }
+            searcher.refine(capacity: params.constructionSearchCapacity) { graph.neighborhood(on: level, around: $0) }
             updateExtendedNeighborhood(forKey: id, on: level, from: searcher.optimal.descending(), maxNeighborhoodSize: maxNeighborhoodSize)
         }
         
         if graph.entry.map({ $0.level < insertionLevel }) ?? true {
-            graph.entry = (id, insertionLevel)
+            graph.entry = (insertionLevel, id)
         }
     }
 }

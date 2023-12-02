@@ -35,7 +35,7 @@ extension DeterministicSampleVectorIndex {
     }
     func edges(for level: Int) -> [(CGPoint, CGPoint)] {
         base.graph.keys(on: level).flatMap { id in
-            base.graph.neighborhood(around: id, on: level).map { neighbor in
+            base.graph.neighborhood(on: level, around: id).map { neighbor in
                 return (base.vectors[id], base.vectors[neighbor])
             }
         }
