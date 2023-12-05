@@ -1,7 +1,7 @@
 import CoreLMDB
 import HNSW
 
-public struct VectorIndex<Metric: SimilarityMetric> where Metric.Vector == [Float32] {
+public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector == [Float32] {
     @usableFromInline
     internal let graph: DurableGraph
     
@@ -26,7 +26,7 @@ public struct VectorIndex<Metric: SimilarityMetric> where Metric.Vector == [Floa
 }
 extension IndexManager where Graph == DurableGraph.Accessor, Metric.Vector == [Float32] {
     @inlinable
-    public init(for index: VectorIndex<Metric>, in transaction: Transaction) throws {
+    public init(for index: DurableVectorIndex<Metric>, in transaction: Transaction) throws {
         self.init(
             graph: try DurableGraph.Accessor(for: index.graph, in: transaction),
             metric: index.metric,
