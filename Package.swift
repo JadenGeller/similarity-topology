@@ -14,8 +14,16 @@ let package = Package(
             targets: ["HNSW"]
         ),
         .library(
-            name: "HNSWExtras",
-            targets: ["HNSWExtras"]
+            name: "HNSWDurable",
+            targets: ["HNSWDurable"]
+        ),
+        .library(
+            name: "HNSWEphemeral",
+            targets: ["HNSWEphemeral"]
+        ),
+        .library(
+            name: "HNSWSample",
+            targets: ["HNSWSample"]
         ),
         .executable(
             name: "HNSWVisualizer",
@@ -23,8 +31,9 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/JadenGeller/swift-priority-heap", branch: "release/0.4.3"),
         .package(url: "https://github.com/apple/swift-numerics", from: "1.0.0"),
+        .package(url: "https://github.com/JadenGeller/swift-priority-heap", branch: "release/0.4.3"),
+        .package(url: "https://github.com/jadengeller/core-lmdb.git", branch: "main"),
     ],
     targets: [
         .target(
@@ -36,16 +45,29 @@ let package = Package(
             ]
         ),
         .target(
-            name: "HNSWExtras",
+            name: "HNSWDurable",
+            dependencies: [
+                "HNSW",
+                .product(name: "CoreLMDB", package: "core-lmdb"),
+                .product(name: "CoreLMDBCells", package: "core-lmdb"),
+                .product(name: "CoreLMDBCoders", package: "core-lmdb")
+            ]
+        ),
+        .target(
+            name: "HNSWEphemeral",
             dependencies: ["HNSW"]
+        ),
+        .target(
+            name: "HNSWSample",
+            dependencies: ["HNSW", "HNSWEphemeral"]
         ),
         .executableTarget(
             name: "HNSWVisualizer",
-            dependencies: ["HNSW", "HNSWExtras"]
+            dependencies: ["HNSW", "HNSWSample"]
         ),
         .testTarget(
             name: "HNSWTests",
-            dependencies: ["HNSW", "HNSWExtras"]
+            dependencies: ["HNSW", "HNSWSample"]
         ),
     ]
 )

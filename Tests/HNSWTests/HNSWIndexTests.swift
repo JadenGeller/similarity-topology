@@ -1,6 +1,6 @@
 import XCTest
 import HNSW
-import HNSWExtras
+import HNSWSample
 
 final class HNSWIndexTests: XCTestCase {
     func testInsertAndNeighborhood() {

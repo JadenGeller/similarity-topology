@@ -1,11 +1,11 @@
 import HNSW
 import PriorityHeapModule
 
-public struct InMemoryVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metric: SimilarityMetric, Metadata> {
+public struct EphemeralVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metric: SimilarityMetric, Metadata> {
     private var nextKey: Key = 0
     public private(set) var vectors: [Metric.Vector] = []
     
-    public typealias Graph = InMemoryGraph<Key, Level>
+    public typealias Graph = EphemeralGraph<Key, Level>
     
     public var graph = Graph()
     public var metric: Metric

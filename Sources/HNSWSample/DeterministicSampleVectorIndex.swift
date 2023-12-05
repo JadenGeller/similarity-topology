@@ -1,10 +1,12 @@
-import HNSW
 import Foundation
 import PriorityHeapModule
 import PriorityHeapAlgorithms
 
+import HNSW
+import HNSWEphemeral
+
 public struct DeterministicSampleVectorIndex {
-    public typealias Index = InMemoryVectorIndex<Int, Int, CartesianDistanceMetric, Void>
+    public typealias Index = EphemeralVectorIndex<Int, Int, CartesianDistanceMetric, Void>
     public var base: Index
     
     public init(typicalNeighborhoodSize: Int) {

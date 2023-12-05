@@ -1,6 +1,6 @@
 import HNSW
 
-public class InMemoryGraph<Key: Hashable, Level: BinaryInteger>: GraphManager {
+public class EphemeralGraph<Key: Hashable, Level: BinaryInteger>: GraphManager {
     private struct NeighborhoodID: Hashable {
         var key: Key
         var level: Level
@@ -28,7 +28,7 @@ public class InMemoryGraph<Key: Hashable, Level: BinaryInteger>: GraphManager {
     }
 }
 
-extension InMemoryGraph {
+extension EphemeralGraph {
     public func keys(on level: Level) -> some Sequence<Key> {
         var result = Set(connections[level, default: [:]].keys)
         if let entry, entry.level == level {
