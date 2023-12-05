@@ -2,7 +2,7 @@ import PriorityHeapModule
 import PriorityHeapAlgorithms
 import RealModule
 
-public struct IndexManager<Graph: GraphStore, Metric: SimilarityMetric> {
+public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
     public var graph: Graph
     public var metric: Metric
     public var vector: (Graph.Key) -> Metric.Vector

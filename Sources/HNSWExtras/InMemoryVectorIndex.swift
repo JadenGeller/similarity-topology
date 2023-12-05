@@ -5,7 +5,7 @@ public struct InMemoryVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metr
     private var nextKey: Key = 0
     public private(set) var vectors: [Metric.Vector] = []
     
-    public typealias Graph = InMemoryGraphStorage<Key, Level>
+    public typealias Graph = InMemoryGraph<Key, Level>
     
     public var graph = Graph()
     public var metric: Metric
