@@ -24,13 +24,16 @@ public struct DurableGraph {
     
     @usableFromInline
     internal var entryKey: ContiguousArray<UInt8>
-
+    
     @inlinable
     public init(namespace: String, in transaction: Transaction) throws {
         adjacencyDatabase = try .open("\(namespace)/adjacency", config: .init(duplicateHandling: .init()), in: transaction)
         mainDatabase = try .open(in: transaction)
         entryKey = try StringByteCoder().withEncoding(of: "\(namespace)/entry", ContiguousArray<UInt8>.init)
     }
+    
+    @inlinable @inline(__always)
+    public static var countNamedDBs: Int { 1 }
     
     public struct Accessor: GraphManager {
         @usableFromInline

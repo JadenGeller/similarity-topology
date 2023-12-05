@@ -22,6 +22,9 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
         self.params = params
     }
     
+    @inlinable @inline(__always)
+    public static var countNamedDBs: Int { DurableGraph.countNamedDBs + DurableVectorRegistry.countNamedDBs }
+    
     public typealias Accessor = IndexManager<DurableGraph.Accessor, Metric>
 }
 extension IndexManager where Graph == DurableGraph.Accessor, Metric.Vector == [Float32] {

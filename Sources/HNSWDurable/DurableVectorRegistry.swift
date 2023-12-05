@@ -24,12 +24,16 @@ public struct DurableVectorRegistry {
     @usableFromInline
     internal var vectorComponentsDatabase: RawDatabase
 
+    
     @inlinable
     public init(namespace: String, in transaction: Transaction) throws {
         compactKeyDatabase = try .open("\(namespace)/compact-key", in: transaction)
         foreignKeyDatabase = try .open("\(namespace)/foreign-key", in: transaction)
         vectorComponentsDatabase = try .open("\(namespace)/components", in: transaction)
     }
+    
+    @inlinable @inline(__always)
+    public static var countNamedDBs: Int { 3 }
 
     public struct Accessor {
         @usableFromInline
