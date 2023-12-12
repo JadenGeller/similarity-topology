@@ -36,8 +36,8 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-numerics", from: "1.0.0"),
-        .package(url: "https://github.com/JadenGeller/swift-priority-heap", branch: "release/0.4.3"),
-        .package(url: "https://github.com/jadengeller/core-lmdb.git", branch: "main"),
+        .package(url: "https://github.com/JadenGeller/swift-priority-heap", from: "0.5.0"),
+        .package(url: "https://github.com/jadengeller/core-lmdb.git", from: "0.0.1"),
     ],
     targets: [
         .target(

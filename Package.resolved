@@ -14,17 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jadengeller/core-lmdb.git",
       "state" : {
-        "branch" : "main",
-        "revision" : "f12838d256af70508bea062be5648a11402936ea"
-      }
-    },
-    {
-      "identity" : "swift-collections",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apple/swift-collections",
-      "state" : {
-        "branch" : "release/1.1",
-        "revision" : "5fab05b1ea1d65f3057dd8caa3d819eb18984022"
+        "revision" : "f12838d256af70508bea062be5648a11402936ea",
+        "version" : "0.0.1"
       }
     },
     {
@@ -41,8 +32,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/JadenGeller/swift-priority-heap",
       "state" : {
-        "branch" : "release/0.4.3",
-        "revision" : "e0b46517a040c493a98cb144d041db238e86b3fa"
+        "revision" : "0ce7065dd10a2936179220283f8bb039482d237f",
+        "version" : "0.5.0"
       }
     }
   ],
