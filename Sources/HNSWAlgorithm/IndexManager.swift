@@ -7,13 +7,13 @@ public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
     public var graph: Graph
     public var metric: Metric
     public var vector: (Graph.Key) -> Metric.Vector
-    public var params: AlgorithmParameters
+    public var config: Config
     
-    public init(graph: Graph, metric: Metric, vector: @escaping (Graph.Key) -> Metric.Vector, params: AlgorithmParameters) {
+    public init(graph: Graph, metric: Metric, vector: @escaping (Graph.Key) -> Metric.Vector, params: Config) {
         self.graph = graph
         self.metric = metric
         self.vector = vector
-        self.params = params
+        self.config = params
     }
 }
 
@@ -45,7 +45,7 @@ extension IndexManager {
 
 extension IndexManager {
     private func randomInsertionLevel(using generator: inout some RandomNumberGenerator) -> Graph.Level {
-        .init(-.log(.random(in: 0..<1, using: &generator)) * params.insertionLevelGenerationLogScale)
+        .init(-.log(.random(in: 0..<1, using: &generator)) * config.insertionLevelGenerationLogScale)
     }
     
     // TODO: Can this be optimized for the case where limit is 1 greater than the number of candidates?
@@ -67,7 +67,7 @@ extension IndexManager {
             }
         }
         assert(bridging.count + crowding.count <= maxNeighborhoodSize)
-        switch params.neighborhoodPreference {
+        switch config.neighborhoodPreference {
         case .preferDensity: return bridging + crowding
         case .preferEfficiency: return bridging
         }
@@ -85,7 +85,7 @@ extension IndexManager {
     }
     
     private func updateExtendedNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) {
-        let immediateNeighborhood = diverseNeighborhood(from: candidates, maxNeighborhoodSize: params.maxNeighborhoodSizeCreate)
+        let immediateNeighborhood = diverseNeighborhood(from: candidates, maxNeighborhoodSize: config.maxNeighborhoodSizeCreate)
         updateImmediateNeighborhood(forKey: id, on: level, from: [], to: immediateNeighborhood.map(\.id))
         
         for immediateNeighbor in immediateNeighborhood {
@@ -109,8 +109,8 @@ extension IndexManager {
         }
         while let level = descentLevel {
             defer { graph.descend(&descentLevel) }
-            let maxNeighborhoodSize = if level > 0 { params.maxNeighborhoodSizeLevelN } else { params.maxNeighborhoodSizeLevel0 }
-            searcher.refine(capacity: params.constructionSearchCapacity) { graph.neighborhood(on: level, around: $0) }
+            let maxNeighborhoodSize = if level > 0 { config.maxNeighborhoodSizeLevelN } else { config.maxNeighborhoodSizeLevel0 }
+            searcher.refine(capacity: config.constructionSearchCapacity) { graph.neighborhood(on: level, around: $0) }
             updateExtendedNeighborhood(forKey: id, on: level, from: searcher.optimal.descending(), maxNeighborhoodSize: maxNeighborhoodSize)
         }
         

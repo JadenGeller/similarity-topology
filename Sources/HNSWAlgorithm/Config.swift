@@ -1,6 +1,6 @@
 import RealModule
 
-public struct AlgorithmParameters {
+public struct Config {
     public var insertionLevelGenerationLogScale: Double
     public var constructionSearchCapacity: Int
     public var maxNeighborhoodSizeCreate: Int
@@ -32,7 +32,7 @@ public struct AlgorithmParameters {
     }
 }
 
-extension AlgorithmParameters {
+extension Config {
     // https://github.com/rust-cv/hnsw/blob/master/implementation.md
     public static func unstableDefault(typicalNeighborhoodSize: Int = 48) -> Self {
         .init(
