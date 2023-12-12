@@ -1,6 +1,7 @@
 import PriorityHeapModule
 import PriorityHeapAlgorithms
 import RealModule
+import SimilarityMetric
 
 public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
     public var graph: Graph

@@ -3,15 +3,19 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-hnsw",
+    name: "similarity-topology",
     platforms: [
         .iOS(.v13),
         .macOS(.v12)
     ],
     products: [
         .library(
-            name: "HNSW",
-            targets: ["HNSW"]
+            name: "SimilarityMetric",
+            targets: ["SimilarityMetric"]
+        ),
+        .library(
+            name: "HNSWAlgorithm",
+            targets: ["HNSWAlgorithm"]
         ),
         .library(
             name: "HNSWDurable",
@@ -37,8 +41,12 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "HNSW",
+            name: "SimilarityMetric"
+        ),
+        .target(
+            name: "HNSWAlgorithm",
             dependencies: [
+                "SimilarityMetric",
                 .product(name: "PriorityHeapModule", package: "swift-priority-heap"),
                 .product(name: "PriorityHeapAlgorithms", package: "swift-priority-heap"),
                 .product(name: "RealModule", package: "swift-numerics"),
@@ -47,7 +55,7 @@ let package = Package(
         .target(
             name: "HNSWDurable",
             dependencies: [
-                "HNSW",
+                "HNSWAlgorithm",
                 .product(name: "CoreLMDB", package: "core-lmdb"),
                 .product(name: "CoreLMDBCells", package: "core-lmdb"),
                 .product(name: "CoreLMDBCoders", package: "core-lmdb")
@@ -55,19 +63,19 @@ let package = Package(
         ),
         .target(
             name: "HNSWEphemeral",
-            dependencies: ["HNSW"]
+            dependencies: ["HNSWAlgorithm"]
         ),
         .target(
             name: "HNSWSample",
-            dependencies: ["HNSW", "HNSWEphemeral"]
+            dependencies: ["HNSWAlgorithm", "HNSWEphemeral"]
         ),
         .executableTarget(
             name: "HNSWVisualizer",
-            dependencies: ["HNSW", "HNSWSample"]
+            dependencies: ["HNSWAlgorithm", "HNSWSample"]
         ),
         .testTarget(
             name: "HNSWTests",
-            dependencies: ["HNSW", "HNSWSample"]
+            dependencies: ["HNSWAlgorithm", "HNSWSample"]
         ),
     ]
 )
