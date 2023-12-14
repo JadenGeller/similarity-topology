@@ -45,7 +45,7 @@ public struct GreedySearcher<Key: Hashable, PriorityKey: Identifiable & Prioriti
                 guard considered.insert(neighbor).inserted else { continue }
                 let neighbor = prioritize(neighbor)
                 if optimal.count + frontier.count >= capacity {
-                    guard neighbor.priority > PriorityHeap.max(optimal, frontier)!.priority else { continue }
+                    guard neighbor.priority > PriorityHeap.min(optimal, frontier)!.priority else { continue }
                     PriorityHeap.withLesserHeap(&optimal, &frontier, ifEqual: .first) { _ = $0.removeMin() }
                 }
                 frontier.insert(neighbor)
