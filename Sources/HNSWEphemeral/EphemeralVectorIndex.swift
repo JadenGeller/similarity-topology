@@ -1,4 +1,5 @@
-import HNSW
+import HNSWAlgorithm
+import SimilarityMetric
 import PriorityHeapModule
 
 public struct EphemeralVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Metric: SimilarityMetric, Metadata> {
@@ -9,15 +10,15 @@ public struct EphemeralVectorIndex<Key: BinaryInteger, Level: BinaryInteger, Met
     
     public var graph = Graph()
     public var metric: Metric
-    public var params: AlgorithmParameters
+    public var config: Config
 
-    public init(metric: Metric, params: AlgorithmParameters) {
+    public init(metric: Metric, config: Config) {
         self.metric = metric
-        self.params = params
+        self.config = config
     }
     
     internal var manager: IndexManager<Graph, Metric> {
-        .init(graph: graph, metric: metric, vector: { vectors[Int($0)] }, params: params)
+        .init(graph: graph, metric: metric, vector: { vectors[Int($0)] }, config: config)
     }
 
     public typealias Neighbor = NearbyVector<Graph.Key, Metric.Vector, Metric.Similarity>

@@ -1,4 +1,4 @@
-import HNSW
+import HNSWAlgorithm
 
 public class EphemeralGraph<Key: Hashable, Level: BinaryInteger>: GraphManager {
     private struct NeighborhoodID: Hashable {

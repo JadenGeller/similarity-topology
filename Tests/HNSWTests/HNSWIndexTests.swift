@@ -1,5 +1,5 @@
 import XCTest
-import HNSW
+import HNSWAlgorithm
 import HNSWSample
 
 final class HNSWIndexTests: XCTestCase {

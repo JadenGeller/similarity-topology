@@ -1,4 +1,4 @@
-import HNSW
+import HNSWAlgorithm
 import GameplayKit
 import PriorityHeapModule
 

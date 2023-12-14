@@ -1,5 +1,5 @@
 import SwiftUI
-import HNSW
+import HNSWAlgorithm
 import HNSWSample
 
 struct GraphView: View {

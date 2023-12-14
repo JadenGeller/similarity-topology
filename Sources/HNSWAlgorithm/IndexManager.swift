@@ -9,11 +9,11 @@ public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
     public var vector: (Graph.Key) -> Metric.Vector
     public var config: Config
     
-    public init(graph: Graph, metric: Metric, vector: @escaping (Graph.Key) -> Metric.Vector, params: Config) {
+    public init(graph: Graph, metric: Metric, vector: @escaping (Graph.Key) -> Metric.Vector, config: Config) {
         self.graph = graph
         self.metric = metric
         self.vector = vector
-        self.config = params
+        self.config = config
     }
 }
 

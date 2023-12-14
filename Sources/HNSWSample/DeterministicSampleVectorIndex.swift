@@ -2,7 +2,8 @@ import Foundation
 import PriorityHeapModule
 import PriorityHeapAlgorithms
 
-import HNSW
+import SimilarityMetric
+import HNSWAlgorithm
 import HNSWEphemeral
 
 public struct DeterministicSampleVectorIndex {
@@ -10,7 +11,7 @@ public struct DeterministicSampleVectorIndex {
     public var base: Index
     
     public init(typicalNeighborhoodSize: Int) {
-        base = .init(metric: .init(), params: .unstableDefault(typicalNeighborhoodSize: typicalNeighborhoodSize))
+        base = .init(metric: .init(), config: .unstableDefault(typicalNeighborhoodSize: typicalNeighborhoodSize))
     }
     
     private var vectorRNG = DeterministicRandomNumberGenerator(seed: 0)

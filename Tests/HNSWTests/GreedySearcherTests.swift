@@ -1,5 +1,5 @@
 import XCTest
-import HNSW
+import HNSWAlgorithm
 
 final class GreedySearcherTests: XCTestCase {
     func search<Element: Comparable>(capacity: Int, _ tree: AdjacencyTree<Element>) -> [Element] {
