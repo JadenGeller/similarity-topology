@@ -26,7 +26,7 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
     @inlinable @inline(__always)
     public static var countNamedDBs: Int { DurableGraph.countNamedDBs + DurableVectorRegistry.countNamedDBs }
         
-    struct Accessor {
+    public struct Accessor {
         @usableFromInline
         internal var graphAccessor: DurableGraph.Accessor
 
