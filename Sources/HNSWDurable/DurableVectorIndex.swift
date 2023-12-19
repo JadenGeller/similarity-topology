@@ -1,5 +1,6 @@
 import CoreLMDB
-import HNSW
+import SimilarityMetric
+import HNSWAlgorithm
 
 public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector == [Float32] {
     @usableFromInline
@@ -12,29 +13,59 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
     internal let metric: Metric
     
     @usableFromInline
-    internal let params: AlgorithmParameters
+    internal let config: Config
 
     @inlinable
-    public init(namespace: String, metric: Metric, params: AlgorithmParameters, in transaction: Transaction) throws {
+    public init(namespace: String, metric: Metric, config: Config, in transaction: Transaction) throws {
         graph = try DurableGraph(namespace: "\(namespace)/graph", in: transaction)
         registry = try DurableVectorRegistry(namespace: "\(namespace)/vector", in: transaction)
         self.metric = metric
-        self.params = params
+        self.config = config
     }
     
     @inlinable @inline(__always)
     public static var countNamedDBs: Int { DurableGraph.countNamedDBs + DurableVectorRegistry.countNamedDBs }
-    
-    public typealias Accessor = IndexManager<DurableGraph.Accessor, Metric>
-}
-extension IndexManager where Graph == DurableGraph.Accessor, Metric.Vector == [Float32] {
-    @inlinable
-    public init(for index: DurableVectorIndex<Metric>, in transaction: Transaction) throws {
-        self.init(
-            graph: try DurableGraph.Accessor(for: index.graph, in: transaction),
-            metric: index.metric,
-            vector: try DurableVectorRegistry.Accessor(for: index.registry, in: transaction).vector,
-            params: index.params
-        )
+        
+    struct Accessor {
+        @usableFromInline
+        internal var graphAccessor: DurableGraph.Accessor
+
+        @usableFromInline
+        internal var vectorRegistryAccessor: DurableVectorRegistry.Accessor
+
+        @usableFromInline
+        internal let metric: Metric
+        
+        @usableFromInline
+        internal let config: Config
+
+        @inlinable
+        public init(for store: DurableVectorIndex, in transaction: Transaction) throws {
+            graphAccessor = try DurableGraph.Accessor(for: store.graph, in: transaction)
+            vectorRegistryAccessor = try DurableVectorRegistry.Accessor(for: store.registry, in: transaction)
+            self.metric = store.metric
+            self.config = store.config
+        }
+        
+        @inlinable
+        internal var indexManager: IndexManager<DurableGraph.Accessor, Metric> {
+            .init(
+                graph: graphAccessor,
+                metric: metric,
+                vector: vectorRegistryAccessor.vector,
+                config: config
+            )
+        }
+        
+        @inlinable
+        public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<NearbyVector<DurableVectorRegistry.ForeignKey, Metric.Vector, Metric.Similarity>> {
+            try indexManager.find(near: query, limit: limit).map({ $0.mapID(vectorRegistryAccessor.toForeignKey) })
+        }
+
+        @inlinable
+        public mutating func insert(_ vector: Metric.Vector, forKey key: DurableVectorRegistry.ForeignKey, using generator: inout some RandomNumberGenerator) {
+            let indexKey = vectorRegistryAccessor.register(vector, forForeignKey: key)
+            indexManager.insert(vector, forKey: indexKey, using: &generator)
+        }
     }
 }

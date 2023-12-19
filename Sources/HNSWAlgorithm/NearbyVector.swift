@@ -11,3 +11,10 @@ public struct NearbyVector<ID: Hashable, Vector, Priority: Comparable>: Identifi
         self.priority = priority
     }
 }
+
+extension NearbyVector {
+    @inlinable @inline(__always)
+    public func mapID<MappedID: Hashable>(_ transform: (ID) throws -> MappedID) rethrows -> NearbyVector<MappedID, Vector, Priority> {
+        .init(id: try transform(id), vector: vector, priority: priority)
+    }
+}

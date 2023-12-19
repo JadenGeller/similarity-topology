@@ -9,6 +9,7 @@ public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
     public var vector: (Graph.Key) -> Metric.Vector
     public var config: Config
     
+    @inlinable
     public init(graph: Graph, metric: Metric, vector: @escaping (Graph.Key) -> Metric.Vector, config: Config) {
         self.graph = graph
         self.metric = metric
@@ -20,12 +21,14 @@ public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
 extension IndexManager {
     public typealias Candidate = NearbyVector<Graph.Key, Metric.Vector, Metric.Similarity>
     
-    private func prioritize(_ id: Graph.Key, relativeTo reference: Metric.Vector) -> Candidate {
+    @inlinable
+    internal func prioritize(_ id: Graph.Key, relativeTo reference: Metric.Vector) -> Candidate {
         let vector = vector(id)
         return .init(id: id, vector: vector, priority: metric.similarity(between: reference, vector))
     }
     
-    private func searcher(for query: Metric.Vector) -> GreedySearcher<Graph.Key, Candidate> {
+    @inlinable
+    internal func searcher(for query: Metric.Vector) -> GreedySearcher<Graph.Key, Candidate> {
         .init(initial: graph.entry.map { [$0.key] } ?? []) { vertex in
             prioritize(vertex, relativeTo: query)
         }
@@ -44,12 +47,13 @@ extension IndexManager {
 }
 
 extension IndexManager {
-    private func randomInsertionLevel(using generator: inout some RandomNumberGenerator) -> Graph.Level {
+    @inlinable
+    internal func randomInsertionLevel(using generator: inout some RandomNumberGenerator) -> Graph.Level {
         .init(-.log(.random(in: 0..<1, using: &generator)) * config.insertionLevelGenerationLogScale)
     }
     
     // TODO: Can this be optimized for the case where limit is 1 greater than the number of candidates?
-    private func diverseNeighborhood(from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) -> [Candidate] {
+    internal func diverseNeighborhood(from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) -> [Candidate] {
         // TODO: Clean this up and maybe share a buffer for both of these, adding from opposite ends
         // TODO: Implement the extended neighbor params option
         var bridging: [Candidate] = []
@@ -73,7 +77,8 @@ extension IndexManager {
         }
     }
     
-    private func updateImmediateNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from oldNeighbors: [Graph.Key], to newNeighbors: [Graph.Key]) {
+    @inlinable
+    internal func updateImmediateNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from oldNeighbors: [Graph.Key], to newNeighbors: [Graph.Key]) {
         for difference in newNeighbors.difference(from: oldNeighbors) {
             switch difference {
             case .insert(_, let neighborID, _):
@@ -84,7 +89,7 @@ extension IndexManager {
         }
     }
     
-    private func updateExtendedNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) {
+    internal func updateExtendedNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) {
         let immediateNeighborhood = diverseNeighborhood(from: candidates, maxNeighborhoodSize: config.maxNeighborhoodSizeCreate)
         updateImmediateNeighborhood(forKey: id, on: level, from: [], to: immediateNeighborhood.map(\.id))
         

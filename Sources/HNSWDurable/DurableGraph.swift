@@ -1,4 +1,4 @@
-import HNSW
+import HNSWAlgorithm
 import CoreLMDB
 import CoreLMDBCells
 import CoreLMDBCoders
