@@ -68,7 +68,7 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
         }
         
         @inlinable
-        public mutating func insert(_ vector: Metric.Vector, forKey key: DurableVectorRegistry.ForeignKey, using generator: inout some RandomNumberGenerator) {
+        public func insert(_ vector: Metric.Vector, forKey key: DurableVectorRegistry.ForeignKey, using generator: inout some RandomNumberGenerator) {
             let indexKey = registry.register(vector, forForeignKey: key)
             indexManager.insert(vector, forKey: indexKey, using: &generator)
         }
