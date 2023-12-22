@@ -79,13 +79,14 @@ extension IndexManager {
     
     @inlinable
     internal func updateImmediateNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from oldNeighbors: [Graph.Key], to newNeighbors: [Graph.Key]) {
-        for difference in newNeighbors.difference(from: oldNeighbors) {
-            switch difference {
-            case .insert(_, let neighborID, _):
-                graph.connect(on: level, (id, neighborID))
-            case .remove(_, let neighborID, _):
-                graph.disconnect(on: level, (id, neighborID))
-            }
+        let oldNeighbors = Set(oldNeighbors)
+        let newNeighbors = Set(newNeighbors)
+        
+        for neighborID in oldNeighbors.subtracting(newNeighbors) {
+            graph.disconnect(on: level, (id, neighborID))
+        }
+        for neighborID in newNeighbors.subtracting(oldNeighbors) {
+            graph.connect(on: level, (id, neighborID))
         }
     }
     
