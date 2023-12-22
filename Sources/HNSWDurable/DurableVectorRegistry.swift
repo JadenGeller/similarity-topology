@@ -75,7 +75,7 @@ public struct DurableVectorRegistry {
             guard let value = try! vectorComponentsCursor.get(atKey: compactKey)?.value else { preconditionFailure("Key not found") }
             return value
         }
-
+        
         @inlinable
         public func toForeignKey(forKey compactKey: CompactKey) -> ForeignKey {
             guard let value = try! foreignKeyCursor.get(atKey: compactKey)?.value else { preconditionFailure("Key not found") }
@@ -86,6 +86,16 @@ public struct DurableVectorRegistry {
         public func key(forForeignKey foreignKey: ForeignKey) -> CompactKey {
             guard let value = try! compactKeyCursor.get(atKey: foreignKey)?.value else { preconditionFailure("Key not found") }
             return value
+        }
+        
+        @inlinable
+        public func hasVector(forForeignKey foreignKey: ForeignKey) -> Bool {
+            try! compactKeyCursor.get(atKey: foreignKey) != nil
+        }
+        
+        @inlinable
+        public func vector(forForeignKey foreignKey: ForeignKey) -> Vector {
+            vector(forKey: key(forForeignKey: foreignKey))
         }
     }
 }
