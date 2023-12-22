@@ -28,10 +28,9 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
         
     public struct Accessor {
         @usableFromInline
-        internal var graphAccessor: DurableGraph.Accessor
+        internal let graph: DurableGraph.Accessor
 
-        @usableFromInline
-        internal var vectorRegistryAccessor: DurableVectorRegistry.Accessor
+        public let registry: DurableVectorRegistry.Accessor
 
         @usableFromInline
         internal let metric: Metric
@@ -41,8 +40,8 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
 
         @inlinable
         public init(for store: DurableVectorIndex, in transaction: Transaction) throws {
-            graphAccessor = try DurableGraph.Accessor(for: store.graph, in: transaction)
-            vectorRegistryAccessor = try DurableVectorRegistry.Accessor(for: store.registry, in: transaction)
+            graph = try DurableGraph.Accessor(for: store.graph, in: transaction)
+            registry = try DurableVectorRegistry.Accessor(for: store.registry, in: transaction)
             self.metric = store.metric
             self.config = store.config
         }
@@ -50,21 +49,27 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
         @inlinable
         internal var indexManager: IndexManager<DurableGraph.Accessor, Metric> {
             .init(
-                graph: graphAccessor,
+                graph: graph,
                 metric: metric,
-                vector: vectorRegistryAccessor.vector,
+                vector: registry.vector,
                 config: config
             )
         }
         
         @inlinable
         public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<NearbyVector<DurableVectorRegistry.ForeignKey, Metric.Vector, Metric.Similarity>> {
-            try indexManager.find(near: query, limit: limit).map({ $0.mapID(vectorRegistryAccessor.toForeignKey) })
+            try indexManager.find(near: query, limit: limit).map({ $0.mapID(registry.toForeignKey) })
         }
-
+        
+        @inlinable
+        public func find(nearKey key: DurableVectorRegistry.ForeignKey, limit: Int) throws -> some Sequence<NearbyVector<DurableVectorRegistry.ForeignKey, Metric.Vector, Metric.Similarity>> {
+            let vector = registry.vector(forKey: registry.key(forForeignKey: key))
+            return try find(near: vector, limit: limit)
+        }
+        
         @inlinable
         public mutating func insert(_ vector: Metric.Vector, forKey key: DurableVectorRegistry.ForeignKey, using generator: inout some RandomNumberGenerator) {
-            let indexKey = vectorRegistryAccessor.register(vector, forForeignKey: key)
+            let indexKey = registry.register(vector, forForeignKey: key)
             indexManager.insert(vector, forKey: indexKey, using: &generator)
         }
     }
