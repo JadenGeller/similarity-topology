@@ -69,9 +69,9 @@ public struct DurableGraph {
         
         @inlinable
         public func disconnect(on level: UInt8, _ keys: (UInt32, UInt32)) {
-            try! adjacencyCursor.get(atKey: (level, keys.0))
+            assert(try! adjacencyCursor.get(atKey: (level, keys.0), value: keys.1) != nil)
             try! adjacencyCursor.delete(target: .value)
-            try! adjacencyCursor.get(atKey: (level, keys.1))
+            assert(try! adjacencyCursor.get(atKey: (level, keys.1), value: keys.0) != nil)
             try! adjacencyCursor.delete(target: .value)
         }
         
