@@ -69,10 +69,16 @@ public struct DurableGraph {
         
         @inlinable
         public func disconnect(on level: UInt8, _ keys: (UInt32, UInt32)) {
-            assert(try! adjacencyCursor.get(atKey: (level, keys.0), value: keys.1) != nil)
-            try! adjacencyCursor.delete(target: .value)
-            assert(try! adjacencyCursor.get(atKey: (level, keys.1), value: keys.0) != nil)
-            try! adjacencyCursor.delete(target: .value)
+            if try! adjacencyCursor.get(atKey: (level, keys.0), value: keys.1) != nil {
+                try! adjacencyCursor.delete(target: .value)
+            } else {
+                print("error: connection does not exist from key \(keys.0) to key \(keys.1) on level \(level)")
+            }
+            if try! adjacencyCursor.get(atKey: (level, keys.1), value: keys.0) != nil {
+                try! adjacencyCursor.delete(target: .value)
+            } else {
+                print("error: connection does not exist from key \(keys.1) to key \(keys.0) on level \(level)")
+            }
         }
         
         @inlinable
