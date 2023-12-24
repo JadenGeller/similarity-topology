@@ -89,8 +89,8 @@ public struct DurableVectorRegistry {
         }
 
         @inlinable
-        public func key(forForeignKey foreignKey: ForeignKey) -> CompactKey {
-            guard let value = try! compactKeyCursor.get(atKey: foreignKey)?.value else { preconditionFailure("Key not found") }
+        public func key(forForeignKey foreignKey: ForeignKey) -> CompactKey? {
+            guard let value = try! compactKeyCursor.get(atKey: foreignKey)?.value else { return nil }
             return value
         }
         
@@ -101,7 +101,7 @@ public struct DurableVectorRegistry {
         
         @inlinable
         public func vector(forForeignKey foreignKey: ForeignKey) -> Vector {
-            vector(forKey: key(forForeignKey: foreignKey))
+            vector(forKey: key(forForeignKey: foreignKey)!)
         }
     }
 }

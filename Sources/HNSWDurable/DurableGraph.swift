@@ -66,6 +66,10 @@ public struct DurableGraph {
             }
         }
         
+        public func hasKey(_ key: UInt32) throws -> Bool {
+            try adjacencyCursor.get(atKey: (0, key)) != nil
+        }
+        
         @inlinable
         public func connect(on level: UInt8, _ keys: (UInt32, UInt32)) {
             try! adjacencyCursor.put(keys.1, atKey: (level, keys.0))

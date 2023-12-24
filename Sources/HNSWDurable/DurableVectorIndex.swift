@@ -27,8 +27,7 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
     public static var countNamedDBs: Int { DurableGraph.countNamedDBs + DurableVectorRegistry.countNamedDBs }
         
     public struct Accessor {
-        @usableFromInline
-        internal let graph: DurableGraph.Accessor
+        public let graph: DurableGraph.Accessor
 
         public let registry: DurableVectorRegistry.Accessor
 
@@ -59,12 +58,6 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
         @inlinable
         public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<NearbyVector<DurableVectorRegistry.ForeignKey, Metric.Vector, Metric.Similarity>> {
             try indexManager.find(near: query, limit: limit).map({ $0.mapID(registry.toForeignKey) })
-        }
-        
-        @inlinable
-        public func find(nearKey key: DurableVectorRegistry.ForeignKey, limit: Int) throws -> some Sequence<NearbyVector<DurableVectorRegistry.ForeignKey, Metric.Vector, Metric.Similarity>> {
-            let vector = registry.vector(forKey: registry.key(forForeignKey: key))
-            return try find(near: vector, limit: limit)
         }
         
         @inlinable
