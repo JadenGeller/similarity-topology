@@ -73,4 +73,11 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
             indexManager.insert(vector, forKey: indexKey, using: &generator)
         }
     }
+    
+    public func dropDatabase(keepVectors: Bool, in transaction: Transaction) throws {
+        try graph.dropDatabase(in: transaction)
+        if !keepVectors {
+            try registry.dropDatabase(in: transaction)
+        }
+    }
 }

@@ -35,6 +35,12 @@ public struct DurableVectorRegistry {
     @inlinable @inline(__always)
     public static var countNamedDBs: Int { 3 }
 
+    public func dropDatabase(in transaction: Transaction) throws {
+        try compactKeyDatabase.drop(close: false, in: transaction)
+        try foreignKeyDatabase.drop(close: false, in: transaction)
+        try vectorComponentsDatabase.drop(close: false, in: transaction)
+    }
+    
     public struct Accessor {
         @usableFromInline
         internal var compactKeyCursor: Cursor<ForeignKeyCoder, CompactKeyCoder>

@@ -35,6 +35,11 @@ public struct DurableGraph {
     @inlinable @inline(__always)
     public static var countNamedDBs: Int { 1 }
     
+    public func dropDatabase(in transaction: Transaction) throws {
+        try adjacencyDatabase.drop(close: false, in: transaction)
+        try mainDatabase.delete(atKey: entryKey, in: transaction)
+    }
+    
     public struct Accessor: GraphManager {
         @usableFromInline
         internal var adjacencyCursor: Cursor<LevelKeyCoder, KeyCoder>
