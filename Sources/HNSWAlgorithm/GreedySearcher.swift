@@ -33,7 +33,7 @@ public struct GreedySearcher<Key: Hashable, PriorityKey: Identifiable & Prioriti
     ///   - capacity: The maximum number of candidates to maintain.
     ///
     /// - Precondition: The capacity must not be less than the current number of optimal candidates.
-    public mutating func refine(capacity: Int, neighborhood: (Key) -> [Key]) {
+    public mutating func refine(capacity: Int, neighborhood: (Key) -> [Key], record: ((from: Key, to: Key)) -> Void = { _ in }) {
         precondition(optimal.count <= capacity, "Capacity limit must not be lesser than current count of optimal candidates.")
         var considered: Set<Key> = .init(optimal.unordered.lazy.map(\.id))
         var frontier: PriorityHeap<PriorityKey>
@@ -49,6 +49,7 @@ public struct GreedySearcher<Key: Hashable, PriorityKey: Identifiable & Prioriti
                     PriorityHeap.withLesserHeap(&optimal, &frontier, ifEqual: .first) { _ = $0.removeMin() }
                 }
                 frontier.insert(neighbor)
+                record((from: unprocessed.id, to: neighbor.id))
             }
         }
     }

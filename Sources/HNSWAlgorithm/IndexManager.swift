@@ -44,6 +44,21 @@ extension IndexManager {
         }
         return searcher.optimal.descending()
     }
+    
+    // TODO: This could be implemented more time efficiently if edges stored distance from nearest descent (but way more storage)
+    public func path(to query: Metric.Vector) throws -> [[Graph.Key]] {
+        var path: [[Graph.Key]] = []
+        var searcher = searcher(for: query)
+        for level in sequence(state: graph.entry?.level, next: graph.descend) {
+            path.append([searcher.optimal.unordered.first!.id])
+            searcher.refine(capacity: 1, neighborhood: { graph.neighborhood(on: level, around: $0) }, record: { edge in
+                // FIXME: Very bad code
+                if edge.from != path.last?.last { path[path.endIndex - 1].removeLast() }
+                path[path.endIndex - 1].append(edge.to)
+            })
+        }
+        return path
+    }
 }
 
 extension IndexManager {

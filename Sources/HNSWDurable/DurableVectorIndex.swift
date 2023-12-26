@@ -46,7 +46,7 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
         }
         
         @inlinable
-        internal var indexManager: IndexManager<DurableGraph.Accessor, Metric> {
+        public var indexManager: IndexManager<DurableGraph.Accessor, Metric> {
             .init(
                 graph: graph,
                 metric: metric,
