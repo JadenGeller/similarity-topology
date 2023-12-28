@@ -1,10 +1,10 @@
 import CoreLMDB
 import CoreLMDBCoders
 
-public struct DurableVectorRegistry {
+public struct DurableVectorRegistry<VectorComponent: UnsafeMemoryLayoutStorableFloat> {
     public typealias ForeignKey = String
     public typealias CompactKey = UInt32
-    public typealias Vector = [Float32] // dimension 512
+    public typealias Vector = [VectorComponent] // dimension 512
 
     public typealias ForeignKeyCoder = StringByteCoder
     public static var foreignKeyCoder: ForeignKeyCoder { .init() }

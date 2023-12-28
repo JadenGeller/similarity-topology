@@ -1,13 +1,14 @@
 import CoreLMDB
 import SimilarityMetric
 import HNSWAlgorithm
+import CoreLMDBCoders
 
-public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector == [Float32] {
+public struct DurableVectorIndex<Metric: SimilarityMetric, VectorComponent: UnsafeMemoryLayoutStorableFloat> where Metric.Vector == [VectorComponent] {
     @usableFromInline
     internal let graph: DurableGraph
     
     @usableFromInline
-    internal let registry: DurableVectorRegistry
+    internal let registry: DurableVectorRegistry<VectorComponent>
     
     @usableFromInline
     internal let metric: Metric
@@ -24,12 +25,12 @@ public struct DurableVectorIndex<Metric: SimilarityMetric> where Metric.Vector =
     }
     
     @inlinable @inline(__always)
-    public static var countNamedDBs: Int { DurableGraph.countNamedDBs + DurableVectorRegistry.countNamedDBs }
+    public static var countNamedDBs: Int { DurableGraph.countNamedDBs + DurableVectorRegistry<VectorComponent>.countNamedDBs }
         
     public struct Accessor {
         public let graph: DurableGraph.Accessor
 
-        public let registry: DurableVectorRegistry.Accessor
+        public let registry: DurableVectorRegistry<VectorComponent>.Accessor
 
         @usableFromInline
         internal let metric: Metric
