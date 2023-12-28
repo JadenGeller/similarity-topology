@@ -72,8 +72,8 @@ public struct DurableGraph {
         
         @inlinable
         public func connect(on level: UInt8, _ keys: (UInt32, UInt32)) {
-            try! adjacencyCursor.put(keys.1, atKey: (level, keys.0))
-            try! adjacencyCursor.put(keys.0, atKey: (level, keys.1))
+            try! adjacencyCursor.put(keys.1, atKey: (level, keys.0), precondition: .uniqueKeyValue)
+            try! adjacencyCursor.put(keys.0, atKey: (level, keys.1), precondition: .uniqueKeyValue)
         }
         
         @inlinable

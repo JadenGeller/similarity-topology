@@ -70,9 +70,9 @@ public struct DurableVectorRegistry<VectorComponent: UnsafeMemoryLayoutStorableF
         @inlinable
         public func register(_ vector: Vector, forForeignKey foreignKey: ForeignKey) -> CompactKey {
             let compactKey = nextKey()
-            try! vectorComponentsCursor.put(vector, atKey: compactKey)
-            try! foreignKeyCursor.put(foreignKey, atKey: compactKey)
-            try! compactKeyCursor.put(compactKey, atKey: foreignKey)
+            try! vectorComponentsCursor.put(vector, atKey: compactKey, precondition: .uniqueKey)
+            try! foreignKeyCursor.put(foreignKey, atKey: compactKey, precondition: .uniqueKey)
+            try! compactKeyCursor.put(compactKey, atKey: foreignKey, precondition: .uniqueKey)
             return compactKey
         }
 
