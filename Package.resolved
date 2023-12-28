@@ -14,8 +14,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/jadengeller/core-lmdb.git",
       "state" : {
-        "revision" : "63798ac2cd3da0928bf16b4c547b7fdac2b7674a",
-        "version" : "0.0.3"
+        "revision" : "9e89e912b34e98f985ab25c9272920c9971596ea",
+        "version" : "0.0.5"
       }
     },
     {
