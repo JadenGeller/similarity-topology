@@ -56,9 +56,25 @@ public struct DurableVectorIndex<Metric: SimilarityMetric, VectorComponent: Unsa
             )
         }
         
+        public
+        struct CompoundKey: Hashable {
+            public var graphKey: UInt32
+            public var foreignKey: String
+            
+            @inlinable @inline(__always)
+            public init(graphKey: UInt32, foreignKey: String) {
+                self.graphKey = graphKey
+                self.foreignKey = foreignKey
+            }
+        }
+        
         @inlinable
-        public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<NearbyVector<DurableVectorRegistry.ForeignKey, Metric.Vector, Metric.Similarity>> {
-            try indexManager.find(near: query, limit: limit).map({ $0.mapID(registry.toForeignKey) })
+        public func find(near query: Metric.Vector, limit: Int) throws -> some Sequence<NearbyVector<CompoundKey, Metric.Vector, Metric.Similarity>> {
+            try indexManager.find(near: query, limit: limit)
+                .map({ $0.mapID { CompoundKey(
+                    graphKey: $0,
+                    foreignKey: registry.toForeignKey(forKey: $0))
+                } })
         }
         
         @inlinable
