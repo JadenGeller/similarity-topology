@@ -100,8 +100,9 @@ public struct DurableVectorRegistry<VectorComponent: UnsafeMemoryLayoutStorableF
         }
         
         @inlinable
-        public func vector(forForeignKey foreignKey: ForeignKey) -> Vector {
-            vector(forKey: key(forForeignKey: foreignKey)!)
+        public func vector(forForeignKey foreignKey: ForeignKey) -> Vector? {
+            guard let compactKey = key(forForeignKey: foreignKey) else { return nil }
+            return vector(forKey: compactKey)
         }
     }
 }
