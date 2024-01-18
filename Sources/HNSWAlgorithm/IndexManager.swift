@@ -68,7 +68,8 @@ extension IndexManager {
         .init(-.log(.random(in: 0..<1, using: &generator)) * config.insertionLevelGenerationLogScale)
     }
     
-    public func clusterNeighborhood(from candidates: DescendingSequence<Candidate>) -> [(bridge: Candidate, crowd: [Candidate])] {
+    // TODO: Descending is confusing terminology for near-to-far
+    public func clusterNeighborhood(fromUncheckedPriorityDescending candidates: some Sequence<Candidate>) -> [(bridge: Candidate, crowd: [Candidate])] {
         var results: [(bridge: Candidate, crowd: [Candidate])] = []
         for candidate in candidates {
             if let index = results.firstIndex(where: { metric.similarity(between: $0.bridge.vector, candidate.vector) > candidate.priority  }) {
@@ -84,7 +85,7 @@ extension IndexManager {
     internal func diverseNeighborhood(from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) -> [Candidate] {
         // TODO: Clean this up and maybe share a buffer for both of these, adding from opposite ends
         // TODO: Implement the extended neighbor params option
-        let clusters = clusterNeighborhood(from: candidates)
+        let clusters = clusterNeighborhood(fromUncheckedPriorityDescending: candidates)
         return switch config.neighborhoodPreference {
         case .preferDensity: Array(chain(clusters.lazy.map(\.bridge), clusters.lazy.flatMap(\.crowd)).prefix(maxNeighborhoodSize))
         case .preferEfficiency: Array(clusters.lazy.map(\.bridge).prefix(maxNeighborhoodSize))
