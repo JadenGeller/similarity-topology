@@ -2,6 +2,7 @@ import PriorityHeapModule
 import PriorityHeapAlgorithms
 import RealModule
 import SimilarityMetric
+import Algorithms
 
 public struct IndexManager<Graph: GraphManager, Metric: SimilarityMetric> {
     public var graph: Graph
@@ -67,30 +68,29 @@ extension IndexManager {
         .init(-.log(.random(in: 0..<1, using: &generator)) * config.insertionLevelGenerationLogScale)
     }
     
+    public func clusterNeighborhood(from candidates: DescendingSequence<Candidate>) -> [(bridge: Candidate, crowd: [Candidate])] {
+        var results: [(bridge: Candidate, crowd: [Candidate])] = []
+        for candidate in candidates {
+            if let index = results.firstIndex(where: { metric.similarity(between: $0.bridge.vector, candidate.vector) > candidate.priority  }) {
+                results[index].crowd.append(candidate)
+            } else {
+                results.append((bridge: candidate, crowd: []))
+            }
+        }
+        return results
+    }
+    
     // TODO: Can this be optimized for the case where limit is 1 greater than the number of candidates?
     internal func diverseNeighborhood(from candidates: DescendingSequence<Candidate>, maxNeighborhoodSize: Int) -> [Candidate] {
         // TODO: Clean this up and maybe share a buffer for both of these, adding from opposite ends
         // TODO: Implement the extended neighbor params option
-        var bridging: [Candidate] = []
-        var crowding: [Candidate] = []
-        for candidate in candidates {
-            if bridging.contains(where: { metric.similarity(between: $0.vector, candidate.vector) > candidate.priority }) {
-                guard bridging.count + crowding.count < maxNeighborhoodSize else { continue }
-                crowding.append(candidate)
-            } else {
-                if bridging.count + crowding.count == maxNeighborhoodSize {
-                    guard !crowding.isEmpty else { break /* fully out of space! */ }
-                    crowding.removeLast()
-                }
-                bridging.append(candidate)
-            }
-        }
-        assert(bridging.count + crowding.count <= maxNeighborhoodSize)
-        switch config.neighborhoodPreference {
-        case .preferDensity: return bridging + crowding
-        case .preferEfficiency: return bridging
+        let clusters = clusterNeighborhood(from: candidates)
+        return switch config.neighborhoodPreference {
+        case .preferDensity: Array(chain(clusters.lazy.map(\.bridge), clusters.lazy.flatMap(\.crowd)).prefix(maxNeighborhoodSize))
+        case .preferEfficiency: Array(clusters.lazy.map(\.bridge).prefix(maxNeighborhoodSize))
         }
     }
+
     
     @inlinable
     internal func updateImmediateNeighborhood(forKey id: Graph.Key, on level: Graph.Level, from oldNeighbors: [Graph.Key], to newNeighbors: [Graph.Key]) {
