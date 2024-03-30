@@ -14,12 +14,12 @@ final class GreedySearcherTests: XCTestCase {
     }
     
     func testFindsMaxRespectingCapacity() {
-        XCTAssertEqual(3, search(capacity: 1, .init(line: [1, 2, 3, 2, 4, 5])!).first)
-        XCTAssertEqual(3, search(capacity: 2, .init(line: [1, 2, 3, 2, 4, 5])!).first)
-        XCTAssertEqual(3, search(capacity: 3, .init(line: [1, 2, 3, 2, 4, 5])!).first)
-        XCTAssertEqual(3, search(capacity: 2, .init(line: [1, 3, 2, 4, 5])!).first)
-        XCTAssertEqual(1, search(capacity: 4, .init(line: [0, 1, 1, 1, 1, 5])!).first)
-        XCTAssertEqual(5, search(capacity: 5, .init(line: [0, 1, 1, 1, 1, 5])!).first)
+        XCTAssertEqual([3], search(capacity: 1, .init(line: [1, 2, 3, 2, 4, 5])!))
+        XCTAssertEqual([3, 2], search(capacity: 2, .init(line: [1, 2, 3, 2, 4, 5])!))
+        XCTAssertEqual([5, 4, 3], search(capacity: 3, .init(line: [1, 2, 3, 2, 4, 5])!))
+        XCTAssertEqual([5, 4], search(capacity: 2, .init(line: [1, 3, 2, 4, 5])!))
+        XCTAssertEqual([5, 1, 1, 1], search(capacity: 4, .init(line: [0, 1, 1, 1, 1, 5])!))
+        XCTAssertEqual([5, 1, 1, 1, 1], search(capacity: 5, .init(line: [0, 1, 1, 1, 1, 5])!))
     }
 
     func testFailsToFindIfThereIsBetterDirection() {
